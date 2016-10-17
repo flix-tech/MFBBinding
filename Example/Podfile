@@ -1,0 +1,8 @@
+use_frameworks!
+
+target 'MFBBindingTests' do
+
+  pod 'MFBBinding', :path => '../'
+  pod 'OCMock', :git => 'https://github.com/flix-tech/ocmock', :branch => 'custom'
+
+end

@@ -1,0 +1,27 @@
+PODS:
+  - MFBBinding (0.1.0)
+  - OCMock (3.3.1)
+
+DEPENDENCIES:
+  - MFBBinding (from `../`)
+  - OCMock (from `https://github.com/flix-tech/ocmock`, branch `custom`)
+
+EXTERNAL SOURCES:
+  MFBBinding:
+    :path: ../
+  OCMock:
+    :branch: custom
+    :git: https://github.com/flix-tech/ocmock
+
+CHECKOUT OPTIONS:
+  OCMock:
+    :commit: eeedb560a45ff843da45c605248bee68af1495bc
+    :git: https://github.com/flix-tech/ocmock
+
+SPEC CHECKSUMS:
+  MFBBinding: cc65e5bb617cfd00885f9abeefb752fc67134ced
+  OCMock: f3f61e6eaa16038c30caa5798c5e49d3307b6f22
+
+PODFILE CHECKSUM: 3c9398e800fec17c7fdfe5a2158cede07e4073cb
+
+COCOAPODS: 1.0.1
