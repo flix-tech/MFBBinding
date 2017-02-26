@@ -300,6 +300,64 @@ static void *SecondToFirstKey = &SecondToFirstKey;
     }
 }
 
+- (void)updateObject:(id)object
+          forKeyPath:(NSString *)keyPath
+              change:(NSDictionary<NSString *, id> *)change
+         transformer:(id(^)(NSValueTransformer *, id))transformer
+{
+    if (_flags.updating) {
+        return;
+    }
+
+    id newValue = change[NSKeyValueChangeNewKey];
+
+    if (newValue == [NSNull null]) {
+        newValue = nil;
+    }
+
+    NSValueTransformer *valueTransformer = self.valueTransformer;
+
+    if (valueTransformer) {
+        newValue = transformer(valueTransformer, newValue);
+    }
+
+    _flags.updating = YES;
+
+    switch ([change[NSKeyValueChangeKindKey] unsignedIntegerValue]) {
+        case NSKeyValueChangeSetting:
+            [object setValue:newValue forKeyPath:keyPath];
+            break;
+        case NSKeyValueChangeInsertion: {
+            NSMutableArray *proxyArray = [object mutableArrayValueForKeyPath:keyPath];
+            NSIndexSet *indexes = change[NSKeyValueChangeIndexesKey];
+            [proxyArray insertObjects:newValue atIndexes:indexes];
+            break;
+        }
+        case NSKeyValueChangeRemoval: {
+            NSMutableArray *proxyArray = [object mutableArrayValueForKeyPath:keyPath];
+            NSIndexSet *indexes = change[NSKeyValueChangeIndexesKey];
+            [proxyArray removeObjectsAtIndexes:indexes];
+            break;
+        }
+        case NSKeyValueChangeReplacement: {
+            NSMutableArray *proxyArray = [object mutableArrayValueForKeyPath:keyPath];
+            NSIndexSet *indexes = change[NSKeyValueChangeIndexesKey];
+            [proxyArray replaceObjectsAtIndexes:indexes withObjects:newValue];
+            break;
+        }
+    }
+
+    _flags.updating = NO;
+}
+
+static __auto_type ForwardTransformer = ^(NSValueTransformer *valueTransformer, id value) {
+    return [valueTransformer transformedValue:value];
+};
+
+static __auto_type ReverseTransformer = ^(NSValueTransformer *valueTransformer, id value) {
+    return [valueTransformer reverseTransformedValue:value];
+};
+
 
 #pragma mark - KVO Methods
 
@@ -310,56 +368,12 @@ static void *SecondToFirstKey = &SecondToFirstKey;
 {
 
     if (context == FirstToSecondKey) {
-
-        if (_flags.updating) {
-            return;
-        }
-
-        id newValue = change[NSKeyValueChangeNewKey];
-
-        if (newValue == [NSNull null]) {
-            newValue = nil;
-        }
-
-        NSValueTransformer *valueTransformer = self.valueTransformer;
-
-        if (valueTransformer) {
-            newValue = [valueTransformer transformedValue:newValue];
-        }
-
-        _flags.updating = YES;
-
-        [_secondObject setValue:newValue forKeyPath:_secondKeyPath];
-
-        _flags.updating = NO;
-        
+        [self updateObject:_secondObject forKeyPath:_secondKeyPath change:change transformer:ForwardTransformer];
         return;
     }
 
     if (context == SecondToFirstKey) {
-
-        if (_flags.updating) {
-            return;
-        }
-
-        id newValue = change[NSKeyValueChangeNewKey];
-
-        if (newValue == [NSNull null]) {
-            newValue = nil;
-        }
-
-        NSValueTransformer *valueTransformer = self.valueTransformer;
-
-        if (valueTransformer) {
-            newValue = [valueTransformer reverseTransformedValue:newValue];
-        }
-
-        _flags.updating = YES;
-
-        [_firstObject setValue:newValue forKeyPath:_firstKeyPath];
-        
-        _flags.updating = NO;
-        
+        [self updateObject:_firstObject forKeyPath:_firstKeyPath change:change transformer:ReverseTransformer];
         return;
     }
 

@@ -9,20 +9,122 @@
 #import <XCTest/XCTest.h>
 #import <OCMock/OCMock.h>
 #import <objc/message.h>
-#import "MFBBinding.h"
+#import <MFBBinding/MFBBinding.h>
 
 @interface MFBBindingTestObjectA : NSObject
 @property (nonatomic) id propertyA;
+@property (nonatomic, copy) NSArray *arrayA;
+@property (nonatomic, copy) NSArray *fineGrainedArrayA;
+
+@property (nonatomic, readonly) NSArray *insertedObjects;
+@property (nonatomic, readonly) NSIndexSet *insertedIndexes;
+@property (nonatomic, readonly) NSIndexSet *removedIndexes;
+@property (nonatomic, readonly) NSArray *replacingObjects;
+@property (nonatomic, readonly) NSIndexSet *replacedIndexes;
+
 @end
 
-@implementation MFBBindingTestObjectA
+@implementation MFBBindingTestObjectA {
+    NSMutableArray *_mutableArrayA;
+}
+
+- (instancetype)init
+{
+    self = [super init];
+    if (self) {
+        _mutableArrayA = [NSMutableArray new];
+    }
+    return self;
+}
+
+- (NSArray *)fineGrainedArrayA
+{
+    return _mutableArrayA;
+}
+
+- (void)setFineGrainedArrayA:(NSArray *)arrayA
+{
+    _mutableArrayA.array = arrayA;
+}
+
+- (void)insertFineGrainedArrayA:(NSArray *)array atIndexes:(NSIndexSet *)indexes
+{
+    [_mutableArrayA insertObjects:array atIndexes:indexes];
+    _insertedObjects = [array copy];
+    _insertedIndexes = [indexes copy];
+}
+
+- (void)removeFineGrainedArrayAAtIndexes:(NSIndexSet *)indexes
+{
+    [_mutableArrayA removeObjectsAtIndexes:indexes];
+    _removedIndexes = [indexes copy];
+}
+
+- (void)replaceFineGrainedArrayAAtIndexes:(NSIndexSet *)indexes withFineGrainedArrayA:(NSArray *)array
+{
+    [_mutableArrayA replaceObjectsAtIndexes:indexes withObjects:array];
+    _replacingObjects = [array copy];
+    _replacedIndexes = [indexes copy];
+}
+
 @end
 
 @interface MFBBindingTestObjectB : NSObject
 @property (nonatomic) id propertyB;
+@property (nonatomic, copy) NSArray *arrayB;
+@property (nonatomic, copy) NSArray *fineGrainedArrayB;
+
+@property (nonatomic, readonly) NSArray *insertedObjects;
+@property (nonatomic, readonly) NSIndexSet *insertedIndexes;
+@property (nonatomic, readonly) NSIndexSet *removedIndexes;
+@property (nonatomic, readonly) NSArray *replacingObjects;
+@property (nonatomic, readonly) NSIndexSet *replacedIndexes;
+
 @end
 
-@implementation MFBBindingTestObjectB
+@implementation MFBBindingTestObjectB {
+    NSMutableArray *_mutableArrayB;
+}
+
+- (instancetype)init
+{
+    self = [super init];
+    if (self) {
+        _mutableArrayB = [NSMutableArray new];
+    }
+    return self;
+}
+
+- (NSArray *)fineGrainedArrayB
+{
+    return _mutableArrayB;
+}
+
+- (void)setFineGrainedArrayB:(NSArray *)fineGrainedArrayB
+{
+    _mutableArrayB.array = fineGrainedArrayB;
+}
+
+- (void)insertFineGrainedArrayB:(NSArray *)array atIndexes:(NSIndexSet *)indexes
+{
+    [_mutableArrayB insertObjects:array atIndexes:indexes];
+    _insertedObjects = [array copy];
+    _insertedIndexes = [indexes copy];
+}
+
+- (void)removeFineGrainedArrayBAtIndexes:(NSIndexSet *)indexes
+{
+    [_mutableArrayB removeObjectsAtIndexes:indexes];
+    _removedIndexes = [indexes copy];
+}
+
+- (void)replaceFineGrainedArrayBAtIndexes:(NSIndexSet *)indexes withFineGrainedArrayB:(NSArray *)array
+{
+    [_mutableArrayB replaceObjectsAtIndexes:indexes withObjects:array];
+    _replacingObjects = [array copy];
+    _replacedIndexes = [indexes copy];
+}
+
 @end
 
 @interface MFBBindingTestControl : UIControl
@@ -208,6 +310,8 @@
 
 #pragma mark - Test Methods
 
+#pragma mark - Value Binding Test Methods
+
 - (void)test_changeFirstObjectProperty_SecondObjectPropertyChanged
 {
     [_configuration setUpBinding];
@@ -357,6 +461,9 @@
     _objectA.propertyA = @"Some";
 }
 
+
+#pragma mark - Retaining Binding Test Methods
+
 - (void)test_RetainsSecondObject_SecondObjectStaysAliveIfFirstObjectIsAlive
 {
     _configuration.retainsSecondObject = YES;
@@ -387,6 +494,9 @@
     XCTAssertNil(WeakObjA);
     XCTAssertNil(WeakObjB);
 }
+
+
+#pragma mark - Transforming Binding Test Methods
 
 - (void)test_changeFirstObjectProperty_IsNilTransformerNameSpecified_SecondObjectPropertyChangedToTransformedValue
 {
@@ -450,6 +560,9 @@
     }
 }
 
+
+#pragma mark - Binding Query Test Methods
+
 - (void)test_object_bindingsForKeypath_OneWay_ArrayWithBindingControllerReturned
 {
     id binding = [_configuration registerBinding];
@@ -507,16 +620,17 @@
     XCTAssertEqualObjects([_objectB mfb_setterBindingsForKeyPath:NSStringFromSelector(@selector(propertyB))], @[ binding ]);
 }
 
-- (void)test_bindingToUIControlObject_UpdatesBindedPropertyForValueChangedEvent
+
+#pragma mark - UIControl Binding Test Methods
+
+- (void)test_bindingToUIControlObject_UpdatesBoundPropertyForValueChangedEvent
 {
     MFBBindingTestControl *control = [MFBBindingTestControl new];
     XCTAssertTrue([control isKindOfClass:[UIControl class]]);
 
-    MFBBindingTestsConfiguration *configuration = _configuration;
-
-    configuration.firstObject = control;
-    configuration.firstKeyPath = NSStringFromSelector(@selector(propertyC));
-    [configuration setUpBinding];
+    _configuration.firstObject = control;
+    _configuration.firstKeyPath = NSStringFromSelector(@selector(propertyC));
+    [_configuration setUpBinding];
 
     for (id value in @[ [NSObject new], [NSObject new], [NSObject new] ]) {
 
@@ -529,7 +643,7 @@
     }
 }
 
-- (void)test_reverseBindingToUIControlObject_UpdatesBindedPropertyForValueChangedEvent
+- (void)test_reverseBindingToUIControlObject_UpdatesBoundPropertyForValueChangedEvent
 {
     MFBBindingTestControl *control = [MFBBindingTestControl new];
     XCTAssertTrue([control isKindOfClass:[UIControl class]]);
@@ -552,7 +666,7 @@
     }
 }
 
-- (void)test_bindingToUIControlObject_UpdatesBindedPropertyForEditingChangedEvent
+- (void)test_bindingToUIControlObject_UpdatesBoundPropertyForEditingChangedEvent
 {
     MFBBindingTestControl *control = [MFBBindingTestControl new];
     XCTAssertTrue([control isKindOfClass:[UIControl class]]);
@@ -573,7 +687,7 @@
     }
 }
 
-- (void)test_reverseBindingToUIControlObject_UpdatesBindedPropertyForEditingChangedEvent
+- (void)test_reverseBindingToUIControlObject_UpdatesBoundPropertyForEditingChangedEvent
 {
     MFBBindingTestControl *control = [MFBBindingTestControl new];
     XCTAssertTrue([control isKindOfClass:[UIControl class]]);
@@ -650,6 +764,9 @@
     XCTAssertEqual(control.allTargets.count, 0);
 }
 
+
+#pragma mark - Binding Assertions Test Methods
+
 - (void)test_BindingAssertion_NoBindingsForKeyPathAndBindingAssertionEnabled_Thows
 {
 #pragma push_macro("NS_BLOCK_ASSERTIONS")
@@ -690,6 +807,605 @@
     XCTAssertNoThrow(MFBAssertGetterBinding(object, propertyA));
 
 #pragma pop_macro("NS_BLOCK_ASSERTIONS")
+}
+
+
+#pragma mark - Array Binding Test Methods
+
+- (void)test_insertionIntoFirstObjectArray_ChangesSecondObjectArrayWithUpdatedArray
+{
+    NSArray *initialObjects = @[ [NSObject new], [NSObject new], [NSObject new] ];
+
+    _objectA.fineGrainedArrayA = initialObjects;
+
+    _configuration.firstKeyPath = NSStringFromSelector(@selector(fineGrainedArrayA));
+    _configuration.secondKeyPath = NSStringFromSelector(@selector(arrayB));
+    [_configuration setUpBinding];
+
+    NSMutableArray *insertedObjects = [NSMutableArray new];
+    NSMutableIndexSet *indexes = [NSMutableIndexSet new];
+
+    const int ObjectsCount = (int) initialObjects.count;
+    const int InsertedObjectsCount = arc4random_uniform(5) + 1;
+
+    for (int i = 0; i < InsertedObjectsCount; i++) {
+
+        NSUInteger idx;
+
+        do {
+            idx = arc4random_uniform(ObjectsCount + InsertedObjectsCount);
+        } while ([indexes containsIndex:idx]);
+
+        [indexes addIndex:idx];
+        [insertedObjects addObject:[NSObject new]];
+    }
+
+    XCTAssertEqualObjects(_objectA.fineGrainedArrayA, _objectB.arrayB);
+
+    [[_objectA mutableArrayValueForKey:@"fineGrainedArrayA"] insertObjects:insertedObjects atIndexes:indexes];
+
+    NSMutableArray *finalObjects = [initialObjects mutableCopy];
+    [finalObjects insertObjects:insertedObjects atIndexes:indexes];
+
+    XCTAssertEqualObjects(_objectB.arrayB, finalObjects);
+}
+
+- (void)test_removalInFirstObjectArray_ChangesSecondObjectArrayWithUpdatedArray
+{
+    NSArray *initialObjects = @[ [NSObject new], [NSObject new], [NSObject new] ];
+
+    _objectA.fineGrainedArrayA = initialObjects;
+
+    _configuration.firstKeyPath = NSStringFromSelector(@selector(fineGrainedArrayA));
+    _configuration.secondKeyPath = NSStringFromSelector(@selector(arrayB));
+    [_configuration setUpBinding];
+
+    NSMutableIndexSet *indexes = [NSMutableIndexSet new];
+
+    const int ObjectsCount = (int) initialObjects.count;
+    const int RemovedObjectsCount = arc4random_uniform(ObjectsCount - 1) + 1;
+
+    for (int i = 0; i < RemovedObjectsCount; i++) {
+
+        NSUInteger idx;
+
+        do {
+            idx = arc4random_uniform(ObjectsCount);
+        } while ([indexes containsIndex:idx]);
+
+        [indexes addIndex:idx];
+    }
+
+    XCTAssertEqualObjects(_objectA.fineGrainedArrayA, _objectB.arrayB);
+
+    [[_objectA mutableArrayValueForKey:@"fineGrainedArrayA"] removeObjectsAtIndexes:indexes];
+
+    NSMutableArray *finalObjects = [initialObjects mutableCopy];
+    [finalObjects removeObjectsAtIndexes:indexes];
+
+    XCTAssertEqualObjects(_objectB.arrayB, finalObjects);
+}
+
+- (void)test_replacementInFirstObjectArray_ChangesSecondObjectArrayWithUpdatedArray
+{
+    NSArray *initialObjects = @[ [NSObject new], [NSObject new], [NSObject new] ];
+
+    _objectA.fineGrainedArrayA = initialObjects;
+
+    _configuration.firstKeyPath = NSStringFromSelector(@selector(fineGrainedArrayA));
+    _configuration.secondKeyPath = NSStringFromSelector(@selector(arrayB));
+    [_configuration setUpBinding];
+
+    NSMutableArray *replacingObjects = [NSMutableArray new];
+    NSMutableIndexSet *indexes = [NSMutableIndexSet new];
+
+    const int ObjectsCount = (int) initialObjects.count;
+    const int ReplacedObjectsCount = arc4random_uniform(ObjectsCount - 1) + 1;
+
+    for (int i = 0; i < ReplacedObjectsCount; i++) {
+
+        NSUInteger idx;
+
+        do {
+            idx = arc4random_uniform(ObjectsCount);
+        } while ([indexes containsIndex:idx]);
+
+        [indexes addIndex:idx];
+        [replacingObjects addObject:[NSObject new]];
+    }
+
+    XCTAssertEqualObjects(_objectA.fineGrainedArrayA, _objectB.arrayB);
+
+    [[_objectA mutableArrayValueForKey:@"fineGrainedArrayA"] replaceObjectsAtIndexes:indexes withObjects:replacingObjects];
+
+    NSMutableArray *finalObjects = [initialObjects mutableCopy];
+    [finalObjects replaceObjectsAtIndexes:indexes withObjects:replacingObjects];
+    
+    XCTAssertEqualObjects(_objectB.arrayB, finalObjects);
+}
+
+- (void)test_insertionIntoSecondObjectArray_OneWay_FirstObjectArrayNotChanged
+{
+    NSArray *initialObjects = @[ [NSObject new], [NSObject new], [NSObject new] ];
+
+    _objectA.arrayA = initialObjects;
+
+    _configuration.firstKeyPath = NSStringFromSelector(@selector(arrayA));
+    _configuration.secondKeyPath = NSStringFromSelector(@selector(fineGrainedArrayB));
+    [_configuration setUpBinding];
+
+    NSMutableArray *insertedObjects = [NSMutableArray new];
+    NSMutableIndexSet *indexes = [NSMutableIndexSet new];
+
+    const int ObjectsCount = (int) initialObjects.count;
+    const int InsertedObjectsCount = arc4random_uniform(5) + 1;
+
+    for (int i = 0; i < InsertedObjectsCount; i++) {
+
+        NSUInteger idx;
+
+        do {
+            idx = arc4random_uniform(ObjectsCount + InsertedObjectsCount);
+        } while ([indexes containsIndex:idx]);
+
+        [indexes addIndex:idx];
+        [insertedObjects addObject:[NSObject new]];
+    }
+
+    XCTAssertEqualObjects(_objectA.arrayA, _objectB.fineGrainedArrayB);
+
+    [[_objectB mutableArrayValueForKey:@"fineGrainedArrayB"] insertObjects:insertedObjects atIndexes:indexes];
+
+    XCTAssertEqualObjects(_objectA.arrayA, initialObjects);
+}
+
+- (void)test_removalInSecondObjectArray_OneWay_FirstObjectArrayNotChanged
+{
+    NSArray *initialObjects = @[ [NSObject new], [NSObject new], [NSObject new] ];
+
+    _objectA.arrayA = initialObjects;
+
+    _configuration.firstKeyPath = NSStringFromSelector(@selector(arrayA));
+    _configuration.secondKeyPath = NSStringFromSelector(@selector(fineGrainedArrayB));
+    [_configuration setUpBinding];
+
+    NSMutableIndexSet *indexes = [NSMutableIndexSet new];
+
+    const int ObjectsCount = (int) initialObjects.count;
+    const int RemovedObjectsCount = arc4random_uniform(ObjectsCount - 1) + 1;
+
+    for (int i = 0; i < RemovedObjectsCount; i++) {
+
+        NSUInteger idx;
+
+        do {
+            idx = arc4random_uniform(ObjectsCount);
+        } while ([indexes containsIndex:idx]);
+
+        [indexes addIndex:idx];
+    }
+
+    XCTAssertEqualObjects(_objectA.arrayA, _objectB.fineGrainedArrayB);
+
+    [[_objectB mutableArrayValueForKey:@"fineGrainedArrayB"] removeObjectsAtIndexes:indexes];
+
+    XCTAssertEqualObjects(_objectA.arrayA, initialObjects);
+}
+
+- (void)test_replacementInSecondObjectArray_OneWay_FirstObjectArrayNotChanged
+{
+    NSArray *initialObjects = @[ [NSObject new], [NSObject new], [NSObject new] ];
+
+    _objectA.arrayA = initialObjects;
+
+    _configuration.firstKeyPath = NSStringFromSelector(@selector(arrayA));
+    _configuration.secondKeyPath = NSStringFromSelector(@selector(fineGrainedArrayB));
+    [_configuration setUpBinding];
+
+    NSMutableArray *replacingObjects = [NSMutableArray new];
+    NSMutableIndexSet *indexes = [NSMutableIndexSet new];
+
+    const int ObjectsCount = (int) initialObjects.count;
+    const int ReplacedObjectsCount = arc4random_uniform(ObjectsCount - 1) + 1;
+
+    for (int i = 0; i < ReplacedObjectsCount; i++) {
+
+        NSUInteger idx;
+
+        do {
+            idx = arc4random_uniform(ObjectsCount);
+        } while ([indexes containsIndex:idx]);
+
+        [indexes addIndex:idx];
+        [replacingObjects addObject:[NSObject new]];
+    }
+
+    XCTAssertEqualObjects(_objectA.arrayA, _objectB.fineGrainedArrayB);
+
+    [[_objectB mutableArrayValueForKey:@"fineGrainedArrayB"] replaceObjectsAtIndexes:indexes withObjects:replacingObjects];
+
+    XCTAssertEqualObjects(_objectA.arrayA, initialObjects);
+}
+
+- (void)test_insertionIntoSecondObjectArray_TwoWay_ChangesFirstObjectArrayWithUpdatedArray
+{
+    NSArray *initialObjects = @[ [NSObject new], [NSObject new], [NSObject new] ];
+
+    _objectA.arrayA = initialObjects;
+
+    _configuration.firstKeyPath = NSStringFromSelector(@selector(arrayA));
+    _configuration.secondKeyPath = NSStringFromSelector(@selector(fineGrainedArrayB));
+    _configuration.twoWay = YES;
+    [_configuration setUpBinding];
+
+    NSMutableArray *insertedObjects = [NSMutableArray new];
+    NSMutableIndexSet *indexes = [NSMutableIndexSet new];
+
+    const int ObjectsCount = (int) initialObjects.count;
+    const int InsertedObjectsCount = arc4random_uniform(5) + 1;
+
+    for (int i = 0; i < InsertedObjectsCount; i++) {
+
+        NSUInteger idx;
+
+        do {
+            idx = arc4random_uniform(ObjectsCount + InsertedObjectsCount);
+        } while ([indexes containsIndex:idx]);
+
+        [indexes addIndex:idx];
+        [insertedObjects addObject:[NSObject new]];
+    }
+
+    XCTAssertEqualObjects(_objectA.arrayA, _objectB.fineGrainedArrayB);
+
+    [[_objectB mutableArrayValueForKey:@"fineGrainedArrayB"] insertObjects:insertedObjects atIndexes:indexes];
+
+    NSMutableArray *finalObjects = [initialObjects mutableCopy];
+    [finalObjects insertObjects:insertedObjects atIndexes:indexes];
+
+    XCTAssertEqualObjects(_objectA.arrayA, finalObjects);
+}
+
+- (void)test_removalInSecondObjectArray_TwoWay_ChangesFirstObjectArrayWithUpdatedArray
+{
+    NSArray *initialObjects = @[ [NSObject new], [NSObject new], [NSObject new] ];
+
+    _objectA.arrayA = initialObjects;
+
+    _configuration.firstKeyPath = NSStringFromSelector(@selector(arrayA));
+    _configuration.secondKeyPath = NSStringFromSelector(@selector(fineGrainedArrayB));
+    _configuration.twoWay = YES;
+    [_configuration setUpBinding];
+
+    NSMutableIndexSet *indexes = [NSMutableIndexSet new];
+
+    const int ObjectsCount = (int) initialObjects.count;
+    const int RemovedObjectsCount = arc4random_uniform(ObjectsCount - 1) + 1;
+
+    for (int i = 0; i < RemovedObjectsCount; i++) {
+
+        NSUInteger idx;
+
+        do {
+            idx = arc4random_uniform(ObjectsCount);
+        } while ([indexes containsIndex:idx]);
+
+        [indexes addIndex:idx];
+    }
+
+    XCTAssertEqualObjects(_objectA.arrayA, _objectB.fineGrainedArrayB);
+
+    [[_objectB mutableArrayValueForKey:@"fineGrainedArrayB"] removeObjectsAtIndexes:indexes];
+
+    NSMutableArray *finalObjects = [initialObjects mutableCopy];
+    [finalObjects removeObjectsAtIndexes:indexes];
+
+    XCTAssertEqualObjects(_objectA.arrayA, finalObjects);
+}
+
+- (void)test_replacementInSecondObjectArray_TwoWay_ChangesFirstObjectArrayWithUpdatedArray
+{
+    NSArray *initialObjects = @[ [NSObject new], [NSObject new], [NSObject new] ];
+
+    _objectA.arrayA = initialObjects;
+
+    _configuration.firstKeyPath = NSStringFromSelector(@selector(arrayA));
+    _configuration.secondKeyPath = NSStringFromSelector(@selector(fineGrainedArrayB));
+    _configuration.twoWay = YES;
+    [_configuration setUpBinding];
+
+    NSMutableArray *replacingObjects = [NSMutableArray new];
+    NSMutableIndexSet *indexes = [NSMutableIndexSet new];
+
+    const int ObjectsCount = (int) initialObjects.count;
+    const int ReplacedObjectsCount = arc4random_uniform(ObjectsCount - 1) + 1;
+
+    for (int i = 0; i < ReplacedObjectsCount; i++) {
+
+        NSUInteger idx;
+
+        do {
+            idx = arc4random_uniform(ObjectsCount);
+        } while ([indexes containsIndex:idx]);
+
+        [indexes addIndex:idx];
+        [replacingObjects addObject:[NSObject new]];
+    }
+
+    XCTAssertEqualObjects(_objectA.arrayA, _objectB.fineGrainedArrayB);
+
+    [[_objectB mutableArrayValueForKey:@"fineGrainedArrayB"] replaceObjectsAtIndexes:indexes withObjects:replacingObjects];
+
+    NSMutableArray *finalObjects = [initialObjects mutableCopy];
+    [finalObjects replaceObjectsAtIndexes:indexes withObjects:replacingObjects];
+    
+    XCTAssertEqualObjects(_objectA.arrayA, finalObjects);
+}
+
+
+#pragma mark - Fine Grained Updating Array Binding Test Methods
+
+- (void)test_insertionIntoFirstObjectArray_InsertsObjectsIntoSecondObjectArray
+{
+    NSArray *initialObjects = @[ [NSObject new], [NSObject new], [NSObject new] ];
+
+    _objectA.fineGrainedArrayA = initialObjects;
+
+    _configuration.firstKeyPath = NSStringFromSelector(@selector(fineGrainedArrayA));
+    _configuration.secondKeyPath = NSStringFromSelector(@selector(fineGrainedArrayB));
+    [_configuration setUpBinding];
+
+    NSMutableArray *insertedObjects = [NSMutableArray new];
+    NSMutableIndexSet *indexes = [NSMutableIndexSet new];
+
+    const int ObjectsCount = (int) initialObjects.count;
+    const int InsertedObjectsCount = arc4random_uniform(5) + 1;
+
+    for (int i = 0; i < InsertedObjectsCount; i++) {
+
+        NSUInteger idx;
+
+        do {
+            idx = arc4random_uniform(ObjectsCount + InsertedObjectsCount);
+        } while ([indexes containsIndex:idx]);
+
+        [indexes addIndex:idx];
+        [insertedObjects addObject:[NSObject new]];
+    }
+
+    XCTAssertEqualObjects(_objectA.fineGrainedArrayA, _objectB.fineGrainedArrayB);
+    XCTAssertNil(_objectB.insertedObjects);
+    XCTAssertNil(_objectB.insertedIndexes);
+    XCTAssertNil(_objectB.removedIndexes);
+    XCTAssertNil(_objectB.replacingObjects);
+    XCTAssertNil(_objectB.replacedIndexes);
+
+    [[_objectA mutableArrayValueForKey:@"fineGrainedArrayA"] insertObjects:insertedObjects atIndexes:indexes];
+
+    XCTAssertEqualObjects(_objectB.insertedObjects, insertedObjects);
+    XCTAssertEqualObjects(_objectB.insertedIndexes, indexes);
+    XCTAssertNil(_objectB.removedIndexes);
+    XCTAssertNil(_objectB.replacingObjects);
+    XCTAssertNil(_objectB.replacedIndexes);
+}
+
+- (void)test_removalInFirstObjectArray_RemovesObjectsFromSecondObjectArray
+{
+    NSArray *initialObjects = @[ [NSObject new], [NSObject new], [NSObject new] ];
+
+    _objectA.fineGrainedArrayA = initialObjects;
+
+    _configuration.firstKeyPath = NSStringFromSelector(@selector(fineGrainedArrayA));
+    _configuration.secondKeyPath = NSStringFromSelector(@selector(fineGrainedArrayB));
+    [_configuration setUpBinding];
+
+    NSMutableIndexSet *indexes = [NSMutableIndexSet new];
+
+    const int ObjectsCount = (int) initialObjects.count;
+    const int RemovedObjectsCount = arc4random_uniform(ObjectsCount - 1) + 1;
+
+    for (int i = 0; i < RemovedObjectsCount; i++) {
+
+        NSUInteger idx;
+
+        do {
+            idx = arc4random_uniform(ObjectsCount);
+        } while ([indexes containsIndex:idx]);
+
+        [indexes addIndex:idx];
+    }
+
+    XCTAssertEqualObjects(_objectA.fineGrainedArrayA, _objectB.fineGrainedArrayB);
+    XCTAssertNil(_objectB.insertedObjects);
+    XCTAssertNil(_objectB.insertedIndexes);
+    XCTAssertNil(_objectB.removedIndexes);
+    XCTAssertNil(_objectB.replacingObjects);
+    XCTAssertNil(_objectB.replacedIndexes);
+
+    [[_objectA mutableArrayValueForKey:@"fineGrainedArrayA"] removeObjectsAtIndexes:indexes];
+
+    XCTAssertNil(_objectB.insertedObjects);
+    XCTAssertNil(_objectB.insertedIndexes);
+    XCTAssertEqualObjects(_objectB.removedIndexes, indexes);
+    XCTAssertNil(_objectB.replacingObjects);
+    XCTAssertNil(_objectB.replacedIndexes);
+}
+
+- (void)test_replacementInFirstObjectArray_ReplacesObjectsInSecondObjectArray
+{
+    NSArray *initialObjects = @[ [NSObject new], [NSObject new], [NSObject new] ];
+
+    _objectA.fineGrainedArrayA = initialObjects;
+
+    _configuration.firstKeyPath = NSStringFromSelector(@selector(fineGrainedArrayA));
+    _configuration.secondKeyPath = NSStringFromSelector(@selector(fineGrainedArrayB));
+    [_configuration setUpBinding];
+
+    NSMutableArray *replacingObjects = [NSMutableArray new];
+    NSMutableIndexSet *indexes = [NSMutableIndexSet new];
+
+    const int ObjectsCount = (int) initialObjects.count;
+    const int ReplacedObjectsCount = arc4random_uniform(ObjectsCount - 1) + 1;
+
+    for (int i = 0; i < ReplacedObjectsCount; i++) {
+
+        NSUInteger idx;
+
+        do {
+            idx = arc4random_uniform(ObjectsCount);
+        } while ([indexes containsIndex:idx]);
+
+        [indexes addIndex:idx];
+        [replacingObjects addObject:[NSObject new]];
+    }
+
+    XCTAssertEqualObjects(_objectA.fineGrainedArrayA, _objectB.fineGrainedArrayB);
+    XCTAssertNil(_objectB.insertedObjects);
+    XCTAssertNil(_objectB.insertedIndexes);
+    XCTAssertNil(_objectB.removedIndexes);
+    XCTAssertNil(_objectB.replacingObjects);
+    XCTAssertNil(_objectB.replacedIndexes);
+
+    [[_objectA mutableArrayValueForKey:@"fineGrainedArrayA"] replaceObjectsAtIndexes:indexes withObjects:replacingObjects];
+
+    XCTAssertNil(_objectB.insertedObjects);
+    XCTAssertNil(_objectB.insertedIndexes);
+    XCTAssertNil(_objectB.removedIndexes);
+    XCTAssertEqualObjects(_objectB.replacingObjects, replacingObjects);
+    XCTAssertEqualObjects(_objectB.replacedIndexes, indexes);
+}
+
+- (void)test_insertionIntoSecondObjectArray_TwoWay_InsertsObjectsIntoFirstObjectArray
+{
+    NSArray *initialObjects = @[ [NSObject new], [NSObject new], [NSObject new] ];
+
+    _objectA.fineGrainedArrayA = initialObjects;
+
+    _configuration.firstKeyPath = NSStringFromSelector(@selector(fineGrainedArrayA));
+    _configuration.secondKeyPath = NSStringFromSelector(@selector(fineGrainedArrayB));
+    _configuration.twoWay = YES;
+    [_configuration setUpBinding];
+
+    NSMutableArray *insertedObjects = [NSMutableArray new];
+    NSMutableIndexSet *indexes = [NSMutableIndexSet new];
+
+    const int ObjectsCount = (int) initialObjects.count;
+    const int InsertedObjectsCount = arc4random_uniform(5) + 1;
+
+    for (int i = 0; i < InsertedObjectsCount; i++) {
+
+        NSUInteger idx;
+
+        do {
+            idx = arc4random_uniform(ObjectsCount + InsertedObjectsCount);
+        } while ([indexes containsIndex:idx]);
+
+        [indexes addIndex:idx];
+        [insertedObjects addObject:[NSObject new]];
+    }
+
+    XCTAssertEqualObjects(_objectA.fineGrainedArrayA, _objectB.fineGrainedArrayB);
+    XCTAssertNil(_objectA.insertedObjects);
+    XCTAssertNil(_objectA.insertedIndexes);
+    XCTAssertNil(_objectA.removedIndexes);
+    XCTAssertNil(_objectA.replacingObjects);
+    XCTAssertNil(_objectA.replacedIndexes);
+
+    [[_objectB mutableArrayValueForKey:@"fineGrainedArrayB"] insertObjects:insertedObjects atIndexes:indexes];
+
+    XCTAssertEqualObjects(_objectA.insertedObjects, insertedObjects);
+    XCTAssertEqualObjects(_objectA.insertedIndexes, indexes);
+    XCTAssertNil(_objectA.removedIndexes);
+    XCTAssertNil(_objectA.replacingObjects);
+    XCTAssertNil(_objectA.replacedIndexes);
+}
+
+- (void)test_removalInSecondObjectArray_TwoWay_RemovesObjectsFromFirstObjectArray
+{
+    NSArray *initialObjects = @[ [NSObject new], [NSObject new], [NSObject new] ];
+
+    _objectA.fineGrainedArrayA = initialObjects;
+
+    _configuration.firstKeyPath = NSStringFromSelector(@selector(fineGrainedArrayA));
+    _configuration.secondKeyPath = NSStringFromSelector(@selector(fineGrainedArrayB));
+    _configuration.twoWay = YES;
+    [_configuration setUpBinding];
+
+    NSMutableIndexSet *indexes = [NSMutableIndexSet new];
+
+    const int ObjectsCount = (int) initialObjects.count;
+    const int RemovedObjectsCount = arc4random_uniform(ObjectsCount - 1) + 1;
+
+    for (int i = 0; i < RemovedObjectsCount; i++) {
+
+        NSUInteger idx;
+
+        do {
+            idx = arc4random_uniform(ObjectsCount);
+        } while ([indexes containsIndex:idx]);
+
+        [indexes addIndex:idx];
+    }
+
+    XCTAssertEqualObjects(_objectA.fineGrainedArrayA, _objectB.fineGrainedArrayB);
+    XCTAssertNil(_objectA.insertedObjects);
+    XCTAssertNil(_objectA.insertedIndexes);
+    XCTAssertNil(_objectA.removedIndexes);
+    XCTAssertNil(_objectA.replacingObjects);
+    XCTAssertNil(_objectA.replacedIndexes);
+
+    [[_objectB mutableArrayValueForKey:@"fineGrainedArrayB"] removeObjectsAtIndexes:indexes];
+
+    XCTAssertNil(_objectA.insertedObjects);
+    XCTAssertNil(_objectA.insertedIndexes);
+    XCTAssertEqualObjects(_objectA.removedIndexes, indexes);
+    XCTAssertNil(_objectA.replacingObjects);
+    XCTAssertNil(_objectA.replacedIndexes);
+}
+
+- (void)test_replacementInSecondObjectArray_TwoWay_ReplacesObjectsInFirstObjectArray
+{
+    NSArray *initialObjects = @[ [NSObject new], [NSObject new], [NSObject new] ];
+
+    _objectA.fineGrainedArrayA = initialObjects;
+
+    _configuration.firstKeyPath = NSStringFromSelector(@selector(fineGrainedArrayA));
+    _configuration.secondKeyPath = NSStringFromSelector(@selector(fineGrainedArrayB));
+    _configuration.twoWay = YES;
+    [_configuration setUpBinding];
+
+    NSMutableArray *replacingObjects = [NSMutableArray new];
+    NSMutableIndexSet *indexes = [NSMutableIndexSet new];
+
+    const int ObjectsCount = (int) initialObjects.count;
+    const int ReplacedObjectsCount = arc4random_uniform(ObjectsCount - 1) + 1;
+
+    for (int i = 0; i < ReplacedObjectsCount; i++) {
+
+        NSUInteger idx;
+
+        do {
+            idx = arc4random_uniform(ObjectsCount);
+        } while ([indexes containsIndex:idx]);
+
+        [indexes addIndex:idx];
+        [replacingObjects addObject:[NSObject new]];
+    }
+
+    XCTAssertEqualObjects(_objectA.fineGrainedArrayA, _objectB.fineGrainedArrayB);
+    XCTAssertNil(_objectA.insertedObjects);
+    XCTAssertNil(_objectA.insertedIndexes);
+    XCTAssertNil(_objectA.removedIndexes);
+    XCTAssertNil(_objectA.replacingObjects);
+    XCTAssertNil(_objectA.replacedIndexes);
+
+    [[_objectB mutableArrayValueForKey:@"fineGrainedArrayB"] replaceObjectsAtIndexes:indexes withObjects:replacingObjects];
+
+    XCTAssertNil(_objectA.insertedObjects);
+    XCTAssertNil(_objectA.insertedIndexes);
+    XCTAssertNil(_objectA.removedIndexes);
+    XCTAssertEqualObjects(_objectA.replacingObjects, replacingObjects);
+    XCTAssertEqualObjects(_objectA.replacedIndexes, indexes);
 }
 
 @end
