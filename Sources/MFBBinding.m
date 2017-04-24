@@ -421,7 +421,11 @@ NSString *const MFBValueTransformerNameBindingOption = @"MFBValueTransformerName
 
 - (void)mfb_unbindAll:(NSString *)binding
 {
+    NSCParameterAssert(binding != nil);
 
+    __auto_type bindings = [self mfb_bindingsForKeyPath:binding];
+
+    [bindings makeObjectsPerformSelector:@selector(unbind)];
 }
 
 - (NSArray<MFBBinding *> *)mfb_bindingsForKeyPath:(NSString *)keyPath
