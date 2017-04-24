@@ -419,6 +419,11 @@ NSString *const MFBValueTransformerNameBindingOption = @"MFBValueTransformerName
     [bindingController bind];
 }
 
+- (void)mfb_unbindAll:(NSString *)binding
+{
+
+}
+
 - (NSArray<MFBBinding *> *)mfb_bindingsForKeyPath:(NSString *)keyPath
 {
     return [MFBBindingInfo bindingsForObject:self keyPath:keyPath];
