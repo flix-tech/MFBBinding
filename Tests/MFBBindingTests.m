@@ -1408,7 +1408,7 @@
     XCTAssertEqualObjects(_objectA.replacedIndexes, indexes);
 }
 
-- (void)test_unbindAll_RemovesMatchingBinding
+- (void)test_unbindAll_RemovesMatchingBindings
 {
     __auto_type object1 = [MFBBindingTestObjectA new];
     __auto_type object2 = [MFBBindingTestObjectB new];
@@ -1424,10 +1424,16 @@
           withKeyPath:NSStringFromSelector(@selector(propertyA))
               options:nil];
 
+    [object3 mfb_bind:NSStringFromSelector(@selector(arrayA))
+             toObject:object2
+          withKeyPath:NSStringFromSelector(@selector(propertyB))
+              options:nil];
+
     [object2 mfb_unbindAll:NSStringFromSelector(@selector(propertyB))];
 
     XCTAssertEqual([object2 mfb_bindingsForKeyPath:NSStringFromSelector(@selector(propertyB))].count, 0);
     XCTAssertEqual([object2 mfb_bindingsForKeyPath:NSStringFromSelector(@selector(arrayB))].count, 1);
+    XCTAssertEqual([object3 mfb_bindingsForKeyPath:NSStringFromSelector(@selector(arrayA))].count, 0);
 }
 
 @end
