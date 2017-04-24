@@ -220,17 +220,11 @@ static void TweakDeallocForUnbindingIfNeeded(id obj)
 
 - (void)_unregisterBinding:(MFBBinding *)binding
 {
-    if (binding.secondObject == _object) {
-        [_setterBindings removeBinding:binding forKeyPath:binding.secondKeyPath];
-    } else if (binding.firstObject == _object) {
-        [_setterBindings removeBinding:binding forKeyPath:binding.firstKeyPath];
-    }
+    [_setterBindings removeBinding:binding forKeyPath:binding.secondKeyPath];
+    [_setterBindings removeBinding:binding forKeyPath:binding.firstKeyPath];
 
-    if (binding.firstObject == _object) {
-        [_getterBindings removeBinding:binding forKeyPath:binding.firstKeyPath];
-    } else if (binding.secondObject == _object) {
-        [_getterBindings removeBinding:binding forKeyPath:binding.secondKeyPath];
-    }
+    [_getterBindings removeBinding:binding forKeyPath:binding.firstKeyPath];
+    [_getterBindings removeBinding:binding forKeyPath:binding.secondKeyPath];
 }
 
 - (NSArray<MFBBinding *> *)_bindingsForKeyPath:(NSString *)keyPath
