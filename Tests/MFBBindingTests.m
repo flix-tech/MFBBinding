@@ -1436,4 +1436,37 @@
     XCTAssertEqual([object3 mfb_bindingsForKeyPath:NSStringFromSelector(@selector(arrayA))].count, 0);
 }
 
+/*
+ 1. B binds to A.propertyA and is being retained by that binding.
+ 2. B retains C through its property
+ 3. C binds to A.propertyA
+ 4. When A deallocates, unbinding of binding 1. causes deallocation of B and, consequently, deallocation of C,
+ killing binding 3 and causing "array was mutated while being enumerated" exception in binding enumeration code.
+ */
+- (void)test_objectDealloc_MultipleBindingsCausingCascadeDeallocation_DoesNotThrow
+{
+    __auto_type objectA = [MFBBindingTestObjectA new];
+    __auto_type objectB = [MFBBindingTestObjectB new];
+    __auto_type objectC = [MFBBindingTestObjectA new];
+
+    objectB.arrayB = @[ objectC ]; // make B retain C
+
+    [objectC mfb_bind:NSStringFromSelector(@selector(propertyA))
+             toObject:objectA
+          withKeyPath:NSStringFromSelector(@selector(propertyA))
+              options:nil];
+
+    [objectB mfb_bind:NSStringFromSelector(@selector(propertyB))
+             toObject:objectA
+          withKeyPath:NSStringFromSelector(@selector(propertyA))
+              options:@{
+                        MFBRetainObserverBindingOption : @YES,
+                        }];
+
+    objectC = nil;
+    objectB = nil;
+    // subgraph of B & C is now retained only by the binding between A & B
+    objectA = nil;
+}
+
 @end

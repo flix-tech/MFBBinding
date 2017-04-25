@@ -82,7 +82,7 @@
     NSCParameterAssert(block != nil);
 
     [_store enumerateKeysAndObjectsUsingBlock:^(NSString *_, NSMutableArray<MFBBinding *> *list, BOOL *__) {
-        for (MFBBinding *binding in list) {
+        for (MFBBinding *binding in [list copy]) {
             block(binding);
         }
     }];
