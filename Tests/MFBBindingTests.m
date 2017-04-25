@@ -1460,8 +1460,8 @@
              toObject:objectA
           withKeyPath:NSStringFromSelector(@selector(propertyA))
               options:@{
-                        MFBRetainObserverBindingOption : @YES,
-                        }];
+                  MFBRetainObserverBindingOption : @YES,
+              }];
 
     objectC = nil;
     objectB = nil;
