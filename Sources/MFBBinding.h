@@ -36,7 +36,7 @@ extern NSString *const MFBValueTransformerNameBindingOption;
      withKeyPath:(NSString *)keyPath
          options:(NSDictionary<NSString *, id> *)options;
 
-- (void)mfb_unbindAll:(NSString *)binding;
+- (void)mfb_unbind:(NSString *)binding;
 
 /**
  @param keyPath The key-path, relative to the receiver, for which to return the list of corresponding bindings.

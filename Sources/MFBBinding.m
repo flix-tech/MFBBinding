@@ -561,7 +561,7 @@ NSString *const MFBValueTransformerNameBindingOption = @"MFBValueTransformerName
     [bindingController bind];
 }
 
-- (void)mfb_unbindAll:(NSString *)binding
+- (void)mfb_unbind:(NSString *)binding
 {
     NSCParameterAssert(binding != nil);
 
