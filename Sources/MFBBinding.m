@@ -565,7 +565,7 @@ NSString *const MFBValueTransformerNameBindingOption = @"MFBValueTransformerName
 {
     NSCParameterAssert(binding != nil);
 
-    __auto_type bindings = [self mfb_bindingsForKeyPath:binding];
+    __auto_type bindings = [self mfb_setterBindingsForKeyPath:binding];
 
     [bindings makeObjectsPerformSelector:@selector(unbind)];
 }
