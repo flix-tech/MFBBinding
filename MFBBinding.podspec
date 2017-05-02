@@ -8,7 +8,7 @@
 
 Pod::Spec.new do |s|
   s.name             = 'MFBBinding'
-  s.version          = '0.1.0'
+  s.version          = '0.2.0'
   s.summary          = 'Data binding framework for Objective-C'
 
   s.description      = <<-DESC
