@@ -14,6 +14,82 @@
 - (void)unbind;
 @end
 
+@interface MFBBindingStore : NSObject
+
+- (void)addBinding:(MFBBinding *)binding forKeyPath:(NSString *)keyPath;
+- (void)removeBinding:(MFBBinding *)binding forKeyPath:(NSString *)keyPath;
+- (NSArray<MFBBinding *> *)bindingsForKeyPath:(NSString *)keyPath;
+
+- (void)enumerateBindingsUsingBlock:(void (^)(MFBBinding *binding))block;
+
+@end
+
+@implementation MFBBindingStore {
+    NSMutableDictionary<NSString *, NSMutableArray<MFBBinding *> *> *_store;
+}
+
+- (instancetype)init
+{
+    self = [super init];
+
+    if (self) {
+        _store = [NSMutableDictionary dictionary];
+    }
+
+    return self;
+}
+
+- (void)addBinding:(MFBBinding *)binding forKeyPath:(NSString *)keyPath
+{
+    NSCParameterAssert(binding != nil);
+    NSCParameterAssert(keyPath != nil);
+
+    __auto_type list = _store[keyPath];
+
+    if (!list) {
+        list = [NSMutableArray arrayWithObject:binding];
+        _store[keyPath] = list;
+    } else {
+        [list addObject:binding];
+    }
+}
+
+- (void)removeBinding:(MFBBinding *)binding forKeyPath:(NSString *)keyPath
+{
+    NSCParameterAssert(binding != nil);
+    NSCParameterAssert(keyPath != nil);
+
+    __auto_type list = _store[keyPath];
+
+    [list removeObject:binding];
+}
+
+- (NSArray<MFBBinding *> *)bindingsForKeyPath:(NSString *)keyPath
+{
+    NSCParameterAssert(keyPath != nil);
+
+    __auto_type list = _store[keyPath];
+
+    if (list.count == 0) {
+        return @[];
+    }
+
+    return [list copy];
+}
+
+- (void)enumerateBindingsUsingBlock:(void (^)(MFBBinding *))block
+{
+    NSCParameterAssert(block != nil);
+
+    [_store enumerateKeysAndObjectsUsingBlock:^(NSString *_, NSMutableArray<MFBBinding *> *list, BOOL *__) {
+        for (MFBBinding *binding in [list copy]) {
+            block(binding);
+        }
+    }];
+}
+
+@end
+
 @interface MFBBindingInfo : NSObject
 + (void)registerBinding:(MFBBinding *)binding forObject:(id)obj;
 + (void)unregisterBinding:(MFBBinding *)binding forObject:(id)obj;
@@ -23,7 +99,8 @@
 @implementation MFBBindingInfo {
     __weak id _object;
 
-    NSMutableArray *_bindings;
+    MFBBindingStore *_setterBindings;
+    MFBBindingStore *_getterBindings;
 }
 
 static const void *BindingAssociationKey = &BindingAssociationKey;
@@ -120,50 +197,85 @@ static void TweakDeallocForUnbindingIfNeeded(id obj)
         TweakDeallocForUnbindingIfNeeded(object);
 
         _object = object;
-        _bindings = [NSMutableArray new];
+        _setterBindings = [MFBBindingStore new];
+        _getterBindings = [MFBBindingStore new];
     }
     return self;
 }
 
 - (void)_registerBinding:(MFBBinding *)binding
 {
-    [_bindings addObject:binding];
+    if (binding.secondObject == _object) {
+        [_setterBindings addBinding:binding forKeyPath:binding.secondKeyPath];
+    } else if (binding.firstObject == _object) {
+        [_setterBindings addBinding:binding forKeyPath:binding.firstKeyPath];
+    }
+
+    if (binding.firstObject == _object) {
+        [_getterBindings addBinding:binding forKeyPath:binding.firstKeyPath];
+    } else if (binding.secondObject == _object) {
+        [_getterBindings addBinding:binding forKeyPath:binding.secondKeyPath];
+    }
 }
 
 - (void)_unregisterBinding:(MFBBinding *)binding
 {
-    [_bindings removeObject:binding];
+    [_setterBindings removeBinding:binding forKeyPath:binding.secondKeyPath];
+    [_setterBindings removeBinding:binding forKeyPath:binding.firstKeyPath];
+
+    [_getterBindings removeBinding:binding forKeyPath:binding.firstKeyPath];
+    [_getterBindings removeBinding:binding forKeyPath:binding.secondKeyPath];
 }
 
 - (NSArray<MFBBinding *> *)_bindingsForKeyPath:(NSString *)keyPath
 {
-    return [_bindings filteredArrayUsingPredicate:[NSPredicate predicateWithBlock:^BOOL(MFBBinding *binding, NSDictionary<NSString *,id> *_) {
-        return (binding.firstObject == _object && [binding.firstKeyPath isEqualToString:keyPath])
-        || (binding.secondObject == _object && [binding.secondKeyPath isEqualToString:keyPath]);
-    }]];
+    __auto_type setterBindings = [self _setterBindingsForKeyPath:keyPath];
+    __auto_type getterBindings = [self _getterBindingsForKeyPath:keyPath];
+
+    __auto_type uniqueBindings = [NSMutableSet<MFBBinding *> setWithArray:setterBindings];
+    [uniqueBindings addObjectsFromArray:getterBindings];
+
+    return uniqueBindings.allObjects;
 }
 
 - (NSArray<MFBBinding *> *)_getterBindingsForKeyPath:(NSString *)keyPath
 {
-    return [_bindings filteredArrayUsingPredicate:[NSPredicate predicateWithBlock:^BOOL(MFBBinding *binding, NSDictionary<NSString *,id> *_) {
-        return (binding.firstObject == _object && [binding.firstKeyPath isEqualToString:keyPath])
-        || (binding.twoWay && binding.secondObject == _object && [binding.secondKeyPath isEqualToString:keyPath]);
-    }]];
+    __auto_type list = [_getterBindings bindingsForKeyPath:keyPath];
+
+    NSPredicate *predicate = [NSPredicate predicateWithBlock:^BOOL(MFBBinding *evaluatedObject, NSDictionary<NSString *,id> *_) {
+        if (evaluatedObject.secondObject == _object) {
+            return evaluatedObject.twoWay;
+        }
+
+        return YES;
+    }];
+
+    return [list filteredArrayUsingPredicate:predicate];
 }
 
 - (NSArray<MFBBinding *> *)_setterBindingsForKeyPath:(NSString *)keyPath
 {
-    return [_bindings filteredArrayUsingPredicate:[NSPredicate predicateWithBlock:^BOOL(MFBBinding *binding, NSDictionary<NSString *,id> *_) {
-        return (binding.twoWay && binding.firstObject == _object && [binding.firstKeyPath isEqualToString:keyPath])
-        || (binding.secondObject == _object && [binding.secondKeyPath isEqualToString:keyPath]);
-    }]];
+    __auto_type list = [_setterBindings bindingsForKeyPath:keyPath];
+
+    NSPredicate *predicate = [NSPredicate predicateWithBlock:^BOOL(MFBBinding *evaluatedObject, NSDictionary<NSString *,id> *_) {
+        if (evaluatedObject.firstObject == _object) {
+            return evaluatedObject.twoWay;
+        }
+
+        return YES;
+    }];
+
+    return [list filteredArrayUsingPredicate:predicate];
 }
 
 - (void)_unbindAll
 {
-    for (MFBBinding *binding in _bindings.copy) {
+    __auto_type iteration = ^(MFBBinding *binding) {
         [binding unbind];
-    }
+    };
+
+    [_getterBindings enumerateBindingsUsingBlock:iteration];
+    [_setterBindings enumerateBindingsUsingBlock:iteration];
 }
 
 @end
@@ -196,7 +308,16 @@ static void *SecondToFirstKey = &SecondToFirstKey;
 
     _firstObject = firstObject;
 
-    [MFBBindingInfo registerBinding:self forObject:_firstObject];
+    [self registerIfValid];
+}
+
+- (void)setFirstKeyPath:(NSString *)firstKeyPath
+{
+    NSCParameterAssert(firstKeyPath != nil);
+
+    _firstKeyPath = [firstKeyPath copy];
+
+    [self registerIfValid];
 }
 
 - (void)setSecondObject:(id)secondObject
@@ -209,7 +330,16 @@ static void *SecondToFirstKey = &SecondToFirstKey;
 
     _secondObject = secondObject;
 
-    [MFBBindingInfo registerBinding:self forObject:_secondObject];
+    [self registerIfValid];
+}
+
+- (void)setSecondKeyPath:(NSString *)secondKeyPath
+{
+    NSCParameterAssert(secondKeyPath != nil);
+
+    _secondKeyPath = [secondKeyPath copy];
+
+    [self registerIfValid];
 }
 
 - (NSValueTransformer *)valueTransformer
@@ -227,6 +357,16 @@ static void *SecondToFirstKey = &SecondToFirstKey;
 
 
 #pragma mark - Private Methods
+
+- (void)registerIfValid
+{
+    if (!_firstObject || !_firstKeyPath || !_secondObject || !_secondKeyPath) {
+        return;
+    }
+
+    [MFBBindingInfo registerBinding:self forObject:_firstObject];
+    [MFBBindingInfo registerBinding:self forObject:_secondObject];
+}
 
 - (void)bind
 {
@@ -280,6 +420,8 @@ static void *SecondToFirstKey = &SecondToFirstKey;
     if (!_flags.binded) {
         return;
     }
+
+    _flags.binded = NO;
 
     [_firstObject removeObserver:self forKeyPath:_firstKeyPath context:FirstToSecondKey];
 
@@ -417,6 +559,15 @@ NSString *const MFBValueTransformerNameBindingOption = @"MFBValueTransformerName
     bindingController.valueTransformer = options[MFBValueTransformerBindingOption];
 
     [bindingController bind];
+}
+
+- (void)mfb_unbind:(NSString *)binding
+{
+    NSCParameterAssert(binding != nil);
+
+    __auto_type bindings = [self mfb_setterBindingsForKeyPath:binding];
+
+    [bindings makeObjectsPerformSelector:@selector(unbind)];
 }
 
 - (NSArray<MFBBinding *> *)mfb_bindingsForKeyPath:(NSString *)keyPath
