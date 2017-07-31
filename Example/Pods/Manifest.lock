@@ -1,5 +1,5 @@
 PODS:
-  - MFBBinding (0.1.0)
+  - MFBBinding (0.2.0)
   - OCMock (3.3.1)
 
 DEPENDENCIES:
@@ -19,9 +19,9 @@ CHECKOUT OPTIONS:
     :git: https://github.com/flix-tech/ocmock
 
 SPEC CHECKSUMS:
-  MFBBinding: cc65e5bb617cfd00885f9abeefb752fc67134ced
+  MFBBinding: 5f7706645828fb294f598e418fd48090e9bc470c
   OCMock: f3f61e6eaa16038c30caa5798c5e49d3307b6f22
 
-PODFILE CHECKSUM: 3c9398e800fec17c7fdfe5a2158cede07e4073cb
+PODFILE CHECKSUM: 78c418a3149af71ac8fcad8a8f2a84de54c8eab8
 
-COCOAPODS: 1.0.1
+COCOAPODS: 1.1.0

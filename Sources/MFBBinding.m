@@ -6,289 +6,23 @@
 //
 //
 
-#import "MFBBinding.h"
-#import <objc/message.h>
 #import <objc/runtime.h>
 
-@interface MFBBinding ()
-- (void)unbind;
-@end
-
-@interface MFBBindingStore : NSObject
-
-- (void)addBinding:(MFBBinding *)binding forKeyPath:(NSString *)keyPath;
-- (void)removeBinding:(MFBBinding *)binding forKeyPath:(NSString *)keyPath;
-- (NSArray<MFBBinding *> *)bindingsForKeyPath:(NSString *)keyPath;
-
-- (void)enumerateBindingsUsingBlock:(void (^)(MFBBinding *binding))block;
-
-@end
-
-@implementation MFBBindingStore {
-    NSMutableDictionary<NSString *, NSMutableArray<MFBBinding *> *> *_store;
-}
-
-- (instancetype)init
-{
-    self = [super init];
-
-    if (self) {
-        _store = [NSMutableDictionary dictionary];
-    }
-
-    return self;
-}
-
-- (void)addBinding:(MFBBinding *)binding forKeyPath:(NSString *)keyPath
-{
-    NSCParameterAssert(binding != nil);
-    NSCParameterAssert(keyPath != nil);
-
-    __auto_type list = _store[keyPath];
-
-    if (!list) {
-        list = [NSMutableArray arrayWithObject:binding];
-        _store[keyPath] = list;
-    } else {
-        [list addObject:binding];
-    }
-}
-
-- (void)removeBinding:(MFBBinding *)binding forKeyPath:(NSString *)keyPath
-{
-    NSCParameterAssert(binding != nil);
-    NSCParameterAssert(keyPath != nil);
-
-    __auto_type list = _store[keyPath];
-
-    [list removeObject:binding];
-}
-
-- (NSArray<MFBBinding *> *)bindingsForKeyPath:(NSString *)keyPath
-{
-    NSCParameterAssert(keyPath != nil);
-
-    __auto_type list = _store[keyPath];
-
-    if (list.count == 0) {
-        return @[];
-    }
-
-    return [list copy];
-}
-
-- (void)enumerateBindingsUsingBlock:(void (^)(MFBBinding *))block
-{
-    NSCParameterAssert(block != nil);
-
-    [_store enumerateKeysAndObjectsUsingBlock:^(NSString *_, NSMutableArray<MFBBinding *> *list, BOOL *__) {
-        for (MFBBinding *binding in [list copy]) {
-            block(binding);
-        }
-    }];
-}
-
-@end
-
-@interface MFBBindingInfo : NSObject
-+ (void)registerBinding:(MFBBinding *)binding forObject:(id)obj;
-+ (void)unregisterBinding:(MFBBinding *)binding forObject:(id)obj;
-+ (NSArray<MFBBinding *> *)bindingsForObject:(id)obj keyPath:(NSString *)keyPath;
-@end
-
-@implementation MFBBindingInfo {
-    __weak id _object;
-
-    MFBBindingStore *_setterBindings;
-    MFBBindingStore *_getterBindings;
-}
-
-static const void *BindingAssociationKey = &BindingAssociationKey;
-
-+ (void)registerBinding:(MFBBinding *)binding forObject:(id)obj
-{
-    MFBBindingInfo *info = objc_getAssociatedObject(obj, BindingAssociationKey);
-
-    if (!info) {
-        info = [[self alloc] initWithObject:obj];
-
-        objc_setAssociatedObject(obj, BindingAssociationKey, info, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-    }
-
-    [info _registerBinding:binding];
-}
-
-+ (void)unregisterBinding:(MFBBinding *)binding forObject:(id)obj
-{
-    MFBBindingInfo *info = objc_getAssociatedObject(obj, BindingAssociationKey);
-    [info _unregisterBinding:binding];
-}
-
-+ (NSArray<MFBBinding *> *)bindingsForObject:(id)obj keyPath:(NSString *)keyPath
-{
-    MFBBindingInfo *info = objc_getAssociatedObject(obj, BindingAssociationKey);
-    return [info _bindingsForKeyPath:keyPath];
-}
-
-+ (NSArray<MFBBinding *> *)getterBindingsForObject:(id)obj keyPath:(NSString *)keyPath
-{
-    MFBBindingInfo *info = objc_getAssociatedObject(obj, BindingAssociationKey);
-    return [info _getterBindingsForKeyPath:keyPath];
-}
-
-+ (NSArray<MFBBinding *> *)setterBindingsForObject:(id)obj keyPath:(NSString *)keyPath
-{
-    MFBBindingInfo *info = objc_getAssociatedObject(obj, BindingAssociationKey);
-    return [info _setterBindingsForKeyPath:keyPath];
-}
-
-
-#pragma mark - Private Methods
-
-static void TweakDeallocForUnbindingIfNeeded(id obj)
-{
-    Class objClass = [obj class];
-
-    static void *TweakedKey = &TweakedKey;
-
-    if (objc_getAssociatedObject(objClass, TweakedKey)) {
-        return;
-    }
-
-    SEL deallocSelector = sel_registerName("dealloc");
-
-    __block void (*originalDealloc)(__unsafe_unretained id, SEL) = NULL;
-
-    id newDealloc = ^(__unsafe_unretained id self) {
-
-        MFBBindingInfo *info = objc_getAssociatedObject(self, BindingAssociationKey);
-        [info _unbindAll];
-
-        if (originalDealloc == NULL) {
-            struct objc_super superInfo = {
-                .receiver = self,
-                .super_class = [objClass superclass]
-            };
-
-            void (*msgSend)(struct objc_super *, SEL) = (__typeof__(msgSend))objc_msgSendSuper;
-            msgSend(&superInfo, deallocSelector);
-        } else {
-            originalDealloc(self, deallocSelector);
-        }
-    };
-
-    IMP newDeallocIMP = imp_implementationWithBlock(newDealloc);
-
-    if (!class_addMethod(objClass, deallocSelector, newDeallocIMP, "v@:")) {
-
-        Method deallocMethod = class_getInstanceMethod(objClass, deallocSelector);
-
-        originalDealloc = (__typeof__(originalDealloc))method_setImplementation(deallocMethod, newDeallocIMP);
-    }
-
-    objc_setAssociatedObject(obj, TweakedKey, @YES, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-}
-
-- (instancetype)initWithObject:(id)object
-{
-    self = [super init];
-    if (self) {
-
-        TweakDeallocForUnbindingIfNeeded(object);
-
-        _object = object;
-        _setterBindings = [MFBBindingStore new];
-        _getterBindings = [MFBBindingStore new];
-    }
-    return self;
-}
-
-- (void)_registerBinding:(MFBBinding *)binding
-{
-    if (binding.secondObject == _object) {
-        [_setterBindings addBinding:binding forKeyPath:binding.secondKeyPath];
-    } else if (binding.firstObject == _object) {
-        [_setterBindings addBinding:binding forKeyPath:binding.firstKeyPath];
-    }
-
-    if (binding.firstObject == _object) {
-        [_getterBindings addBinding:binding forKeyPath:binding.firstKeyPath];
-    } else if (binding.secondObject == _object) {
-        [_getterBindings addBinding:binding forKeyPath:binding.secondKeyPath];
-    }
-}
-
-- (void)_unregisterBinding:(MFBBinding *)binding
-{
-    [_setterBindings removeBinding:binding forKeyPath:binding.secondKeyPath];
-    [_setterBindings removeBinding:binding forKeyPath:binding.firstKeyPath];
-
-    [_getterBindings removeBinding:binding forKeyPath:binding.firstKeyPath];
-    [_getterBindings removeBinding:binding forKeyPath:binding.secondKeyPath];
-}
-
-- (NSArray<MFBBinding *> *)_bindingsForKeyPath:(NSString *)keyPath
-{
-    __auto_type setterBindings = [self _setterBindingsForKeyPath:keyPath];
-    __auto_type getterBindings = [self _getterBindingsForKeyPath:keyPath];
-
-    __auto_type uniqueBindings = [NSMutableSet<MFBBinding *> setWithArray:setterBindings];
-    [uniqueBindings addObjectsFromArray:getterBindings];
-
-    return uniqueBindings.allObjects;
-}
-
-- (NSArray<MFBBinding *> *)_getterBindingsForKeyPath:(NSString *)keyPath
-{
-    __auto_type list = [_getterBindings bindingsForKeyPath:keyPath];
-
-    NSPredicate *predicate = [NSPredicate predicateWithBlock:^BOOL(MFBBinding *evaluatedObject, NSDictionary<NSString *,id> *_) {
-        if (evaluatedObject.secondObject == _object) {
-            return evaluatedObject.twoWay;
-        }
-
-        return YES;
-    }];
-
-    return [list filteredArrayUsingPredicate:predicate];
-}
-
-- (NSArray<MFBBinding *> *)_setterBindingsForKeyPath:(NSString *)keyPath
-{
-    __auto_type list = [_setterBindings bindingsForKeyPath:keyPath];
-
-    NSPredicate *predicate = [NSPredicate predicateWithBlock:^BOOL(MFBBinding *evaluatedObject, NSDictionary<NSString *,id> *_) {
-        if (evaluatedObject.firstObject == _object) {
-            return evaluatedObject.twoWay;
-        }
-
-        return YES;
-    }];
-
-    return [list filteredArrayUsingPredicate:predicate];
-}
-
-- (void)_unbindAll
-{
-    __auto_type iteration = ^(MFBBinding *binding) {
-        [binding unbind];
-    };
-
-    [_getterBindings enumerateBindingsUsingBlock:iteration];
-    [_setterBindings enumerateBindingsUsingBlock:iteration];
-}
-
-@end
-
+#import "MFBBinding.h"
+#import "MFBBindingInfo.h"
 
 static void *FirstToSecondKey = &FirstToSecondKey;
 static void *SecondToFirstKey = &SecondToFirstKey;
 
+static NSString *const GetterBindingsGroup = @"GetterBindings";
+static NSString *const SetterBindingsGroup = @"SetterBindings";
+
+@interface MFBBinding () <MFBUnbindable>
+@end
+
 @implementation MFBBinding {
-    struct {
-        unsigned int binded:1;
-        unsigned int updating:1;
-    } _flags;
+    BOOL _isBound;
+    BOOL _isUpdating;
 }
 
 - (void)awakeFromNib
@@ -300,44 +34,22 @@ static void *SecondToFirstKey = &SecondToFirstKey;
 
 - (void)setFirstObject:(id)firstObject
 {
+    NSCParameterAssert(_firstKeyPath != nil);
+    NSCParameterAssert(_firstObject == nil);
     NSCParameterAssert(firstObject != nil);
-
-    if (_firstObject) {
-        [MFBBindingInfo unregisterBinding:self forObject:_firstObject];
-    }
 
     _firstObject = firstObject;
 
     [self registerIfValid];
 }
 
-- (void)setFirstKeyPath:(NSString *)firstKeyPath
-{
-    NSCParameterAssert(firstKeyPath != nil);
-
-    _firstKeyPath = [firstKeyPath copy];
-
-    [self registerIfValid];
-}
-
 - (void)setSecondObject:(id)secondObject
 {
+    NSCParameterAssert(_secondKeyPath != nil);
+    NSCParameterAssert(_secondObject == nil);
     NSCParameterAssert(secondObject != nil);
 
-    if (_secondObject) {
-        [MFBBindingInfo unregisterBinding:self forObject:_secondObject];
-    }
-
     _secondObject = secondObject;
-
-    [self registerIfValid];
-}
-
-- (void)setSecondKeyPath:(NSString *)secondKeyPath
-{
-    NSCParameterAssert(secondKeyPath != nil);
-
-    _secondKeyPath = [secondKeyPath copy];
 
     [self registerIfValid];
 }
@@ -360,12 +72,45 @@ static void *SecondToFirstKey = &SecondToFirstKey;
 
 - (void)registerIfValid
 {
-    if (!_firstObject || !_firstKeyPath || !_secondObject || !_secondKeyPath) {
+    if (!_firstObject || !_secondObject) {
         return;
     }
 
-    [MFBBindingInfo registerBinding:self forObject:_firstObject];
-    [MFBBindingInfo registerBinding:self forObject:_secondObject];
+    [self registerForFirstObject];
+    [self registerForSecondObject];
+}
+
+- (void)registerForFirstObject
+{
+    MFBBindingInfo *bindingInfo = [MFBBindingInfo bindingInfoForObject:_firstObject];
+
+    [bindingInfo addBinding:self forKey:_firstKeyPath group:GetterBindingsGroup];
+
+    if (_twoWay) {
+        [bindingInfo addBinding:self forKey:_firstKeyPath group:SetterBindingsGroup];
+    }
+}
+
+- (void)registerForSecondObject
+{
+    MFBBindingInfo *bindingInfo = [MFBBindingInfo bindingInfoForObject:_secondObject];
+
+    [bindingInfo addBinding:self forKey:_secondKeyPath group:SetterBindingsGroup];
+
+    if (_twoWay) {
+        [bindingInfo addBinding:self forKey:_secondKeyPath group:GetterBindingsGroup];
+    }
+}
+
+- (void)unregisterForObject:(id)obj
+{
+    MFBBindingInfo *bindingInfo = [MFBBindingInfo bindingInfoForObject:obj];
+
+    [bindingInfo removeBinding:self forKey:_secondKeyPath group:SetterBindingsGroup];
+    [bindingInfo removeBinding:self forKey:_firstKeyPath group:SetterBindingsGroup];
+
+    [bindingInfo removeBinding:self forKey:_firstKeyPath group:GetterBindingsGroup];
+    [bindingInfo removeBinding:self forKey:_secondKeyPath group:GetterBindingsGroup];
 }
 
 - (void)bind
@@ -377,11 +122,11 @@ static void *SecondToFirstKey = &SecondToFirstKey;
 
     NSCParameterAssert(!(_twoWay && self.valueTransformer) || [self.valueTransformer.class allowsReverseTransformation]);
     
-    if (_flags.binded) {
+    if (_isBound) {
         return;
     }
 
-    _flags.binded = YES;
+    _isBound = YES;
 
     [_firstObject addObserver:self
                    forKeyPath:_firstKeyPath
@@ -414,14 +159,14 @@ static void *SecondToFirstKey = &SecondToFirstKey;
 
 - (void)unbind
 {
-    [MFBBindingInfo unregisterBinding:self forObject:_firstObject];
-    [MFBBindingInfo unregisterBinding:self forObject:_secondObject];
+    [self unregisterForObject:_firstObject];
+    [self unregisterForObject:_secondObject];
 
-    if (!_flags.binded) {
+    if (!_isBound) {
         return;
     }
 
-    _flags.binded = NO;
+    _isBound = NO;
 
     [_firstObject removeObserver:self forKeyPath:_firstKeyPath context:FirstToSecondKey];
 
@@ -447,7 +192,7 @@ static void *SecondToFirstKey = &SecondToFirstKey;
               change:(NSDictionary<NSString *, id> *)change
          transformer:(id(^)(NSValueTransformer *, id))transformer
 {
-    if (_flags.updating) {
+    if (_isUpdating) {
         return;
     }
 
@@ -463,7 +208,7 @@ static void *SecondToFirstKey = &SecondToFirstKey;
         newValue = transformer(valueTransformer, newValue);
     }
 
-    _flags.updating = YES;
+    _isUpdating = YES;
 
     switch ([change[NSKeyValueChangeKindKey] unsignedIntegerValue]) {
         case NSKeyValueChangeSetting:
@@ -489,7 +234,7 @@ static void *SecondToFirstKey = &SecondToFirstKey;
         }
     }
 
-    _flags.updating = NO;
+    _isUpdating = NO;
 }
 
 static __auto_type ForwardTransformer = ^(NSValueTransformer *valueTransformer, id value) {
@@ -546,17 +291,17 @@ NSString *const MFBValueTransformerNameBindingOption = @"MFBValueTransformerName
 {
     MFBBinding *bindingController = [MFBBinding new];
 
-    bindingController.firstObject = observableController;
     bindingController.firstKeyPath = keyPath;
-
-    bindingController.secondObject = self;
     bindingController.secondKeyPath = binding;
-
     bindingController.twoWay = [options[MFBTwoWayBindingOption] boolValue];
     bindingController.retainsSecondObject = [options[MFBRetainObserverBindingOption] boolValue];
-
     bindingController.valueTransformerName = options[MFBValueTransformerNameBindingOption];
+
     bindingController.valueTransformer = options[MFBValueTransformerBindingOption];
+
+    // IBOutlet's should be set after IBDesignable's
+    bindingController.firstObject = observableController;
+    bindingController.secondObject = self;
 
     [bindingController bind];
 }
@@ -570,29 +315,18 @@ NSString *const MFBValueTransformerNameBindingOption = @"MFBValueTransformerName
     [bindings makeObjectsPerformSelector:@selector(unbind)];
 }
 
-- (NSArray<MFBBinding *> *)mfb_bindingsForKeyPath:(NSString *)keyPath
+- (NSArray *)mfb_getterBindingsForKeyPath:(NSString *)keyPath
 {
-    return [MFBBindingInfo bindingsForObject:self keyPath:keyPath];
+    MFBBindingInfo *bindingInfo = [MFBBindingInfo bindingInfoForObject:self];
+
+    return [bindingInfo bindingsForKey:keyPath inGroup:GetterBindingsGroup];
 }
 
-- (NSArray<MFBBinding *> *)mfb_getterBindingsForKeyPath:(NSString *)keyPath
+- (NSArray *)mfb_setterBindingsForKeyPath:(NSString *)keyPath
 {
-    return [MFBBindingInfo getterBindingsForObject:self keyPath:keyPath];
-}
+    MFBBindingInfo *bindingInfo = [MFBBindingInfo bindingInfoForObject:self];
 
-- (NSArray<MFBBinding *> *)mfb_setterBindingsForKeyPath:(NSString *)keyPath
-{
-    return [MFBBindingInfo setterBindingsForObject:self keyPath:keyPath];
-}
-
-- (BOOL)bindingAssertionDisabled
-{
-    return [objc_getAssociatedObject(self, _cmd) boolValue];
-}
-
-- (void)setBindingAssertionDisabled:(BOOL)disabled
-{
-    objc_setAssociatedObject(self, @selector(bindingAssertionDisabled), @(disabled), OBJC_ASSOCIATION_RETAIN);
+    return [bindingInfo bindingsForKey:keyPath inGroup:SetterBindingsGroup];
 }
 
 @end

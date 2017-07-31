@@ -7,35 +7,83 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		01E3BFAF1F2B622B002EA55A /* MFBActionBindingTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 01E3BFAE1F2B622B002EA55A /* MFBActionBindingTests.m */; };
+		01E3BFD61F2F4AF2002EA55A /* MFBBindingTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 01E3BFD51F2F4AF2002EA55A /* MFBBindingTests.m */; };
+		01E3BFD81F2F4B0D002EA55A /* MFBActionBindingTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 01E3BFD71F2F4B0D002EA55A /* MFBActionBindingTests.m */; };
+		01EE6B2C1F3086E8005399AC /* TestDataGenerators.m in Sources */ = {isa = PBXBuildFile; fileRef = 01EE6B2B1F3086E8005399AC /* TestDataGenerators.m */; };
 		01F637201DB5225B001ED6F4 /* MFBBindingTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 01F6371F1DB5225B001ED6F4 /* MFBBindingTests.m */; };
-		5E44F0CE5E55284810B202A9 /* Pods_MFBBindingTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6992E20C63AE2E419AE71B29 /* Pods_MFBBindingTests.framework */; };
+		70EF0542BBBC22283C87ACA8 /* Pods_AllTests_MFBBindingTests_BlockAssertions.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E2537FA2C52DEC7B544A66F6 /* Pods_AllTests_MFBBindingTests_BlockAssertions.framework */; };
+		B8CD0BCD6DD85A9B7F6376E8 /* Pods_AllTests_MFBBindingTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 735F4275A4DFC57128484838 /* Pods_AllTests_MFBBindingTests.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		01E3BFAE1F2B622B002EA55A /* MFBActionBindingTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MFBActionBindingTests.m; sourceTree = "<group>"; };
+		01E3BFB81F2B758A002EA55A /* MFBBinding.podspec */ = {isa = PBXFileReference; explicitFileType = text.script.ruby; name = MFBBinding.podspec; path = ../MFBBinding.podspec; sourceTree = "<group>"; };
+		01E3BFCC1F2F3E68002EA55A /* MFBBindingTests_BlockAssertions.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MFBBindingTests_BlockAssertions.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		01E3BFD01F2F3E68002EA55A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		01E3BFD51F2F4AF2002EA55A /* MFBBindingTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MFBBindingTests.m; sourceTree = "<group>"; };
+		01E3BFD71F2F4B0D002EA55A /* MFBActionBindingTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MFBActionBindingTests.m; sourceTree = "<group>"; };
+		01EE6B2A1F3086E8005399AC /* TestDataGenerators.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestDataGenerators.h; sourceTree = "<group>"; };
+		01EE6B2B1F3086E8005399AC /* TestDataGenerators.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TestDataGenerators.m; sourceTree = "<group>"; };
 		01F637151DB52118001ED6F4 /* MFBBindingTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MFBBindingTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		01F6371A1DB52118001ED6F4 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		01F6371F1DB5225B001ED6F4 /* MFBBindingTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MFBBindingTests.m; sourceTree = "<group>"; };
+		1FD12BF8D1FAC4FEEDAF4A34 /* Pods-AllTests-MFBBindingTests_BlockAssertions.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AllTests-MFBBindingTests_BlockAssertions.debug.xcconfig"; path = "Pods/Target Support Files/Pods-AllTests-MFBBindingTests_BlockAssertions/Pods-AllTests-MFBBindingTests_BlockAssertions.debug.xcconfig"; sourceTree = "<group>"; };
 		6992E20C63AE2E419AE71B29 /* Pods_MFBBindingTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_MFBBindingTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		735F4275A4DFC57128484838 /* Pods_AllTests_MFBBindingTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_AllTests_MFBBindingTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		A24E84D8C3DBC0094427F55E /* Pods-AllTests-MFBBindingTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AllTests-MFBBindingTests.debug.xcconfig"; path = "Pods/Target Support Files/Pods-AllTests-MFBBindingTests/Pods-AllTests-MFBBindingTests.debug.xcconfig"; sourceTree = "<group>"; };
+		ADD3F7944BB61C7981B080D7 /* Pods-AllTests-MFBBindingTests_BlockAssertions.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AllTests-MFBBindingTests_BlockAssertions.release.xcconfig"; path = "Pods/Target Support Files/Pods-AllTests-MFBBindingTests_BlockAssertions/Pods-AllTests-MFBBindingTests_BlockAssertions.release.xcconfig"; sourceTree = "<group>"; };
+		CFDE107E28D879D73D97D34E /* Pods-AllTests-MFBBindingTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AllTests-MFBBindingTests.release.xcconfig"; path = "Pods/Target Support Files/Pods-AllTests-MFBBindingTests/Pods-AllTests-MFBBindingTests.release.xcconfig"; sourceTree = "<group>"; };
+		E2537FA2C52DEC7B544A66F6 /* Pods_AllTests_MFBBindingTests_BlockAssertions.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_AllTests_MFBBindingTests_BlockAssertions.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		E4430CDAD52BEAEFFF863C8C /* Pods-MFBBindingTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MFBBindingTests.debug.xcconfig"; path = "Pods/Target Support Files/Pods-MFBBindingTests/Pods-MFBBindingTests.debug.xcconfig"; sourceTree = "<group>"; };
 		FCBABFD7226B548EEB069C41 /* Pods-MFBBindingTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MFBBindingTests.release.xcconfig"; path = "Pods/Target Support Files/Pods-MFBBindingTests/Pods-MFBBindingTests.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		01E3BFC91F2F3E68002EA55A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				70EF0542BBBC22283C87ACA8 /* Pods_AllTests_MFBBindingTests_BlockAssertions.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		01F637121DB52118001ED6F4 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5E44F0CE5E55284810B202A9 /* Pods_MFBBindingTests.framework in Frameworks */,
+				B8CD0BCD6DD85A9B7F6376E8 /* Pods_AllTests_MFBBindingTests.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		01E3BFCD1F2F3E68002EA55A /* MFBBindingTests_BlockAssertions */ = {
+			isa = PBXGroup;
+			children = (
+				01E3BFD41F2F4A69002EA55A /* Tests */,
+				01E3BFD01F2F3E68002EA55A /* Info.plist */,
+			);
+			path = MFBBindingTests_BlockAssertions;
+			sourceTree = "<group>";
+		};
+		01E3BFD41F2F4A69002EA55A /* Tests */ = {
+			isa = PBXGroup;
+			children = (
+				01E3BFD51F2F4AF2002EA55A /* MFBBindingTests.m */,
+				01E3BFD71F2F4B0D002EA55A /* MFBActionBindingTests.m */,
+			);
+			name = Tests;
+			path = ../../Tests/DisabledAssertions;
+			sourceTree = "<group>";
+		};
 		01F6370A1DB520C6001ED6F4 = {
 			isa = PBXGroup;
 			children = (
+				01E3BFB81F2B758A002EA55A /* MFBBinding.podspec */,
 				01F637171DB52118001ED6F4 /* MFBBindingTests */,
+				01E3BFCD1F2F3E68002EA55A /* MFBBindingTests_BlockAssertions */,
 				01F637161DB52118001ED6F4 /* Products */,
 				4B8BC7A41AAA371AC43F1B46 /* Pods */,
 				D20CA0B275D5351367FC59DB /* Frameworks */,
@@ -46,6 +94,7 @@
 			isa = PBXGroup;
 			children = (
 				01F637151DB52118001ED6F4 /* MFBBindingTests.xctest */,
+				01E3BFCC1F2F3E68002EA55A /* MFBBindingTests_BlockAssertions.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -63,6 +112,9 @@
 			isa = PBXGroup;
 			children = (
 				01F6371F1DB5225B001ED6F4 /* MFBBindingTests.m */,
+				01E3BFAE1F2B622B002EA55A /* MFBActionBindingTests.m */,
+				01EE6B2A1F3086E8005399AC /* TestDataGenerators.h */,
+				01EE6B2B1F3086E8005399AC /* TestDataGenerators.m */,
 			);
 			name = Tests;
 			path = ../../Tests;
@@ -73,6 +125,10 @@
 			children = (
 				E4430CDAD52BEAEFFF863C8C /* Pods-MFBBindingTests.debug.xcconfig */,
 				FCBABFD7226B548EEB069C41 /* Pods-MFBBindingTests.release.xcconfig */,
+				A24E84D8C3DBC0094427F55E /* Pods-AllTests-MFBBindingTests.debug.xcconfig */,
+				CFDE107E28D879D73D97D34E /* Pods-AllTests-MFBBindingTests.release.xcconfig */,
+				1FD12BF8D1FAC4FEEDAF4A34 /* Pods-AllTests-MFBBindingTests_BlockAssertions.debug.xcconfig */,
+				ADD3F7944BB61C7981B080D7 /* Pods-AllTests-MFBBindingTests_BlockAssertions.release.xcconfig */,
 			);
 			name = Pods;
 			sourceTree = "<group>";
@@ -81,6 +137,8 @@
 			isa = PBXGroup;
 			children = (
 				6992E20C63AE2E419AE71B29 /* Pods_MFBBindingTests.framework */,
+				735F4275A4DFC57128484838 /* Pods_AllTests_MFBBindingTests.framework */,
+				E2537FA2C52DEC7B544A66F6 /* Pods_AllTests_MFBBindingTests_BlockAssertions.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -88,6 +146,26 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		01E3BFCB1F2F3E68002EA55A /* MFBBindingTests_BlockAssertions */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 01E3BFD31F2F3E68002EA55A /* Build configuration list for PBXNativeTarget "MFBBindingTests_BlockAssertions" */;
+			buildPhases = (
+				269EB5396485BB4B2861A00B /* [CP] Check Pods Manifest.lock */,
+				01E3BFC81F2F3E68002EA55A /* Sources */,
+				01E3BFC91F2F3E68002EA55A /* Frameworks */,
+				01E3BFCA1F2F3E68002EA55A /* Resources */,
+				1818AF950A72CCD0C1536892 /* [CP] Embed Pods Frameworks */,
+				E73F728901575C4A9CB59117 /* [CP] Copy Pods Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = MFBBindingTests_BlockAssertions;
+			productName = MFBBindingTests_BlockAssertions;
+			productReference = 01E3BFCC1F2F3E68002EA55A /* MFBBindingTests_BlockAssertions.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		01F637141DB52118001ED6F4 /* MFBBindingTests */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 01F6371B1DB52118001ED6F4 /* Build configuration list for PBXNativeTarget "MFBBindingTests" */;
@@ -116,6 +194,10 @@
 			attributes = {
 				LastUpgradeCheck = 0800;
 				TargetAttributes = {
+					01E3BFCB1F2F3E68002EA55A = {
+						CreatedOnToolsVersion = 8.3.3;
+						ProvisioningStyle = Automatic;
+					};
 					01F637141DB52118001ED6F4 = {
 						CreatedOnToolsVersion = 8.0;
 						ProvisioningStyle = Automatic;
@@ -135,11 +217,19 @@
 			projectRoot = "";
 			targets = (
 				01F637141DB52118001ED6F4 /* MFBBindingTests */,
+				01E3BFCB1F2F3E68002EA55A /* MFBBindingTests_BlockAssertions */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		01E3BFCA1F2F3E68002EA55A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		01F637131DB52118001ED6F4 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -150,6 +240,36 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
+		1818AF950A72CCD0C1536892 /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-AllTests-MFBBindingTests_BlockAssertions/Pods-AllTests-MFBBindingTests_BlockAssertions-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		269EB5396485BB4B2861A00B /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_ROOT}/../Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n";
+			showEnvVarsInLog = 0;
+		};
 		57DDFF2152631CA6FC78DCCC /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -162,7 +282,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-MFBBindingTests/Pods-MFBBindingTests-frameworks.sh\"\n";
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-AllTests-MFBBindingTests/Pods-AllTests-MFBBindingTests-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 		6B3E0379EE7FADFC65A885A7 /* [CP] Check Pods Manifest.lock */ = {
@@ -177,7 +297,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "diff \"${PODS_ROOT}/../Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [[ $? != 0 ]] ; then\n    cat << EOM\nerror: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\nEOM\n    exit 1\nfi\n";
+			shellScript = "diff \"${PODS_ROOT}/../Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n";
 			showEnvVarsInLog = 0;
 		};
 		7059389AFF802173D2125966 /* [CP] Copy Pods Resources */ = {
@@ -192,23 +312,150 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-MFBBindingTests/Pods-MFBBindingTests-resources.sh\"\n";
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-AllTests-MFBBindingTests/Pods-AllTests-MFBBindingTests-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		E73F728901575C4A9CB59117 /* [CP] Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "[CP] Copy Pods Resources";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-AllTests-MFBBindingTests_BlockAssertions/Pods-AllTests-MFBBindingTests_BlockAssertions-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		01E3BFC81F2F3E68002EA55A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				01E3BFD61F2F4AF2002EA55A /* MFBBindingTests.m in Sources */,
+				01E3BFD81F2F4B0D002EA55A /* MFBActionBindingTests.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		01F637111DB52118001ED6F4 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				01EE6B2C1F3086E8005399AC /* TestDataGenerators.m in Sources */,
 				01F637201DB5225B001ED6F4 /* MFBBindingTests.m in Sources */,
+				01E3BFAF1F2B622B002EA55A /* MFBActionBindingTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
+		01E3BFD11F2F3E68002EA55A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 1FD12BF8D1FAC4FEEDAF4A34 /* Pods-AllTests-MFBBindingTests_BlockAssertions.debug.xcconfig */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				INFOPLIST_FILE = MFBBindingTests_BlockAssertions/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 10.3;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				MTL_ENABLE_DEBUG_INFO = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.flixbus.MFBBindingTests-BlockAssertions";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+			};
+			name = Debug;
+		};
+		01E3BFD21F2F3E68002EA55A /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = ADD3F7944BB61C7981B080D7 /* Pods-AllTests-MFBBindingTests_BlockAssertions.release.xcconfig */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				INFOPLIST_FILE = MFBBindingTests_BlockAssertions/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 10.3;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				MTL_ENABLE_DEBUG_INFO = NO;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.flixbus.MFBBindingTests-BlockAssertions";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
 		01F6370F1DB520C6001ED6F4 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -225,7 +472,7 @@
 		};
 		01F6371C1DB52118001ED6F4 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = E4430CDAD52BEAEFFF863C8C /* Pods-MFBBindingTests.debug.xcconfig */;
+			baseConfigurationReference = A24E84D8C3DBC0094427F55E /* Pods-AllTests-MFBBindingTests.debug.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
@@ -248,6 +495,7 @@
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_NS_ASSERTIONS = YES;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
@@ -264,6 +512,10 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"${PODS_ROOT}/Headers/Private\"",
+				);
 				INFOPLIST_FILE = MFBBindingTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				MTL_ENABLE_DEBUG_INFO = YES;
@@ -276,7 +528,7 @@
 		};
 		01F6371D1DB52118001ED6F4 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = FCBABFD7226B548EEB069C41 /* Pods-MFBBindingTests.release.xcconfig */;
+			baseConfigurationReference = CFDE107E28D879D73D97D34E /* Pods-AllTests-MFBBindingTests.release.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
@@ -299,7 +551,7 @@
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_NS_ASSERTIONS = YES;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -309,6 +561,10 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"${PODS_ROOT}/Headers/Private\"",
+				);
 				INFOPLIST_FILE = MFBBindingTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				MTL_ENABLE_DEBUG_INFO = NO;
@@ -322,6 +578,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		01E3BFD31F2F3E68002EA55A /* Build configuration list for PBXNativeTarget "MFBBindingTests_BlockAssertions" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				01E3BFD11F2F3E68002EA55A /* Debug */,
+				01E3BFD21F2F3E68002EA55A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		01F6370E1DB520C6001ED6F4 /* Build configuration list for PBXProject "MFBBinding" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
