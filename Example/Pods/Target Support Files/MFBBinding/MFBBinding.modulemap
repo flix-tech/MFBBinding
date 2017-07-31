@@ -1,6 +1,0 @@
-framework module MFBBinding {
-  umbrella header "MFBBinding-umbrella.h"
-
-  export *
-  module * { export * }
-}

@@ -24,4 +24,5 @@ MFBBinding provides data binding mechanism with Interface Builder support, which
   s.requires_arc = true
 
   s.source_files = 'Sources/**/*.{h,m}'
+  s.private_header_files = 'Sources/**/Private/**/*.h'
 end

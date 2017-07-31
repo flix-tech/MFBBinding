@@ -8,6 +8,9 @@
 
 #import <Foundation/Foundation.h>
 
+#import "MFBActionBinding.h"
+#import "NSObject+MFBBindingAssertion.h"
+
 @interface MFBBinding : NSObject
 
 @property (nonatomic, unsafe_unretained) IBOutlet id firstObject;
@@ -38,23 +41,24 @@ extern NSString *const MFBValueTransformerNameBindingOption;
 
 - (void)mfb_unbind:(NSString *)binding;
 
-/**
- @param keyPath The key-path, relative to the receiver, for which to return the list of corresponding bindings.
- 
- Important: Not optimised. Use for debugging or assertions only.
- */
-- (NSArray<MFBBinding *> *)mfb_bindingsForKeyPath:(NSString *)keyPath;
-- (NSArray<MFBBinding *> *)mfb_getterBindingsForKeyPath:(NSString *)keyPath;
-- (NSArray<MFBBinding *> *)mfb_setterBindingsForKeyPath:(NSString *)keyPath;
-
-/**
- Setting this property to @p YES will disable assertions made by @a MFBAssertGetterBinding and @a MFBAssertSetterBinding
- macros for the receiver.
- */
-@property (nonatomic) BOOL bindingAssertionDisabled;
-
 @end
 
+#ifdef DEBUG
+/**
+ For debug and assertion purposes only
+ */
+@interface NSObject (MFBBindingQueries)
+
+/**
+ @param keyPath The key-path, relative to the receiver, for which to return the list of corresponding bindings.
+ */
+- (NSArray *)mfb_getterBindingsForKeyPath:(NSString *)keyPath;
+- (NSArray *)mfb_setterBindingsForKeyPath:(NSString *)keyPath;
+
+@end
+#endif
+
+// clang-format off
 #if !defined(NS_BLOCK_ASSERTIONS)
     #define MFBAssertGetterBinding(obj, property) ({ \
         if (!obj.bindingAssertionDisabled) { \
@@ -67,6 +71,7 @@ extern NSString *const MFBValueTransformerNameBindingOption;
             NSCAssert([obj mfb_setterBindingsForKeyPath:_propertyName].count > 0, @"Missing setter binding(s) for property: %@", _propertyName); \
         }})
 #else
-    #define MFBAssertSetterBinding(obj, property)
-    #define MFBAssertGetterBinding(obj, property)
+    #define MFBAssertSetterBinding(obj, property) ({})
+    #define MFBAssertGetterBinding(obj, property) ({})
 #endif
+// clang-format on

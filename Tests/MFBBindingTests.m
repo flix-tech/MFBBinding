@@ -11,6 +11,8 @@
 #import <objc/message.h>
 #import <MFBBinding/MFBBinding.h>
 
+#import "TestDataGenerators.h"
+
 @interface MFBBindingTestObjectA : NSObject
 @property (nonatomic) id propertyA;
 @property (nonatomic, copy) NSArray *arrayA;
@@ -162,24 +164,22 @@
 @property (nonatomic) NSValueTransformer *valueTransformer;
 @property (nonatomic, copy) IBInspectable NSString *valueTransformerName;
 
-- (id)setUpBinding __attribute__((ns_returns_retained));
+- (void)setUpBinding;
 
-- (id)registerBinding __attribute__((ns_returns_retained));
+- (void)registerBinding;
 
 @end
 
 @implementation MFBBindingTestsConfiguration
 
-- (id)setUpBinding
+- (void)setUpBinding
 {
     [self doesNotRecognizeSelector:_cmd];
-    return nil;
 }
 
-- (id)registerBinding
+- (void)registerBinding
 {
     [self doesNotRecognizeSelector:_cmd];
-    return nil;
 }
 
 @end
@@ -189,23 +189,24 @@
 
 @implementation MFBBindingTestsIBConfiguration
 
-- (id)setUpBinding
+- (void)setUpBinding
 {
-    MFBBinding *binding = [self registerBinding];
+    MFBBinding *binding = [self loadIBBinding];
 
     [binding awakeFromNib];
-
-    return binding;
 }
 
-- (id)registerBinding
+- (void)registerBinding
+{
+    [self loadIBBinding];
+}
+
+- (MFBBinding *)loadIBBinding
 {
     MFBBinding *binding = [MFBBinding new];
 
-    binding.firstObject = self.firstObject;
     binding.firstKeyPath = self.firstKeyPath;
 
-    binding.secondObject = self.secondObject;
     binding.secondKeyPath = self.secondKeyPath;
 
     binding.twoWay = self.twoWay;
@@ -213,6 +214,10 @@
 
     binding.valueTransformerName = self.valueTransformerName;
     binding.valueTransformer = self.valueTransformer;
+
+    // IBOutlet's should be set after IBDesignable's
+    binding.firstObject = self.firstObject;
+    binding.secondObject = self.secondObject;
 
     return binding;
 }
@@ -224,12 +229,7 @@
 
 @implementation MFBBindingTestsInCodeConfiguration
 
-- (id)setUpBinding
-{
-    return [self registerBinding];
-}
-
-- (id)registerBinding
+- (void)setUpBinding
 {
     NSMutableDictionary *options = [NSMutableDictionary new];
 
@@ -253,14 +253,11 @@
                        toObject:self.firstObject
                     withKeyPath:self.firstKeyPath
                         options:options];
+}
 
-    id binding;
-
-    @autoreleasepool {
-        binding = [self.firstObject mfb_bindingsForKeyPath:self.firstKeyPath][0];
-    }
-
-    return binding;
+- (void)registerBinding
+{
+    [self setUpBinding];
 }
 
 @end
@@ -316,14 +313,12 @@
 {
     [_configuration setUpBinding];
 
-    for (id v in @[ [NSObject new], [NSNull null] ]) {
+    EnumerateOptionalValues(^(id value) {
 
-        const id Value = v != [NSNull null] ? v : nil;
+        _objectA.propertyA = value;
 
-        _objectA.propertyA = Value;
-
-        XCTAssertEqual(_objectB.propertyB, Value);
-    }
+        XCTAssertEqual(_objectB.propertyB, value);
+    });
 }
 
 - (void)test_changeSecondObjectProperty_OneWayBinding_FirstObjectPropertyNotChanged
@@ -332,14 +327,12 @@
 
     id InitialValueA = _objectA.propertyA;
 
-    for (id v in @[ [NSObject new], [NSNull null] ]) {
+    EnumerateOptionalValues(^(id value) {
 
-        const id Value = v != [NSNull null] ? v : nil;
-
-        _objectB.propertyB = Value;
+        _objectB.propertyB = value;
 
         XCTAssertEqual(_objectA.propertyA, InitialValueA);
-    }
+    });
 }
 
 - (void)test_changeSecondObjectProperty_TwoWayBinding_FirstObjectPropertyChanged
@@ -347,104 +340,12 @@
     _configuration.twoWay = YES;
     [_configuration setUpBinding];
 
-    for (id v in @[ [NSObject new], [NSNull null] ]) {
+    EnumerateOptionalValues(^(id value) {
 
-        const id Value = v != [NSNull null] ? v : nil;
+        _objectB.propertyB = value;
 
-        _objectB.propertyB = Value;
-
-        XCTAssertEqual(_objectA.propertyA, Value);
-    }
-}
-
-- (void)test_FirstObjectDeallocation_OneWayBinding_BindingDeallocated
-{
-    id binding = [_configuration setUpBinding];
-
-    __weak id WeakBinding = binding;
-    __weak id WeakObjA = _objectA;
-
-    binding = nil;
-    _objectA = nil;
-
-    XCTAssertNil(WeakObjA);
-    XCTAssertNil(WeakBinding);
-}
-
-- (void)test_SecondObjectDeallocation_OneWayBinding_BindingDeallocated
-{
-    id binding = [_configuration setUpBinding];
-
-    __weak id WeakBinding = binding;
-    __weak id WeakObjB = _objectB;
-
-    binding = nil;
-    _objectB = nil;
-
-    XCTAssertNil(WeakObjB);
-    XCTAssertNil(WeakBinding);
-
-    _objectA.propertyA = @"Some";
-}
-
-- (void)test_FirstObjectDeallocation_OneWayBindingNotFinished_BindingDeallocated
-{
-    id binding = [_configuration registerBinding];
-
-    __weak id WeakBinding = binding;
-    __weak id WeakObjA = _objectA;
-
-    binding = nil;
-    _objectA = nil;
-
-    XCTAssertNil(WeakObjA);
-    XCTAssertNil(WeakBinding);
-}
-
-- (void)test_SecondObjectDeallocation_OneWayBindingNotFinished_BindingDeallocated
-{
-    id binding = [_configuration registerBinding];
-
-    __weak id WeakBinding = binding;
-    __weak id WeakObjB = _objectB;
-
-    binding = nil;
-    _objectB = nil;
-
-    XCTAssertNil(WeakObjB);
-    XCTAssertNil(WeakBinding);
-
-    _objectA.propertyA = @"Some";
-}
-
-- (void)test_TwoWayBinding_BindingStaysAliveIfObjectsAreAlive
-{
-    _configuration.twoWay = YES;
-    id binding = [_configuration setUpBinding];
-
-    __weak id WeakBinding = binding;
-
-    binding = nil;
-
-    XCTAssertNotNil(WeakBinding);
-}
-
-- (void)test_TwoWayBinding_BindingDoesNotCauseRetainCycles
-{
-    _configuration.twoWay = YES;
-    id binding = [_configuration setUpBinding];
-
-    __weak id WeakBinding = binding;
-    __weak id WeakObjA = _objectA;
-    __weak id WeakObjB = _objectB;
-
-    binding = nil;
-    _objectA = nil;
-    _objectB = nil;
-
-    XCTAssertNil(WeakBinding);
-    XCTAssertNil(WeakObjA);
-    XCTAssertNil(WeakObjB);
+        XCTAssertEqual(_objectA.propertyA, value);
+    });
 }
 
 - (void)test_SecondObjectDeallocation_TwoWayBinding_HandledCorrectly
@@ -476,11 +377,18 @@
     XCTAssertNotNil(WeakObjB);
 }
 
+#ifdef DEBUG
+
 - (void)test_RetainsSecondObject_DoesNotCauseRetainCycles
 {
     _configuration.retainsSecondObject = YES;
 
-    id binding = [_configuration setUpBinding];
+    id binding;
+
+    @autoreleasepool {
+        [_configuration setUpBinding];
+        binding = [_objectA mfb_getterBindingsForKeyPath:NSStringFromSelector(@selector(propertyA))][0];
+    }
 
     __weak id WeakBinding = binding;
     __weak id WeakObjA = _objectA;
@@ -495,6 +403,8 @@
     XCTAssertNil(WeakObjB);
 }
 
+#endif // #ifdef DEBUG
+
 
 #pragma mark - Transforming Binding Test Methods
 
@@ -507,14 +417,12 @@
 
     NSValueTransformer *expectedTransformer = [NSValueTransformer valueTransformerForName:ValueTransformerName];
 
-    for (id v in @[ [NSObject new], [NSNull null] ]) {
+    EnumerateOptionalValues(^(id value) {
 
-        const id Value = v != [NSNull null] ? v : nil;
+        _objectA.propertyA = value;
 
-        _objectA.propertyA = Value;
-
-        XCTAssertEqualObjects(_objectB.propertyB, [expectedTransformer transformedValue:Value]);
-    }
+        XCTAssertEqualObjects(_objectB.propertyB, [expectedTransformer transformedValue:value]);
+    });
 }
 
 - (void)test_changeFirstObjectProperty_CustomTransformerSpecified_SecondObjectPropertyChangedToTransformedValue
@@ -524,18 +432,17 @@
     _configuration.valueTransformer = transformerMock;
     [_configuration setUpBinding];
 
-    for (id v in @[ [NSObject new], [NSNull null] ]) {
+    EnumerateOptionalValues(^(id value) {
 
-        const id Value = v != [NSNull null] ? v : nil;
         const id TransformedValue = [NSObject new];
 
-        OCMExpect([transformerMock transformedValue:Value]).andReturn(TransformedValue);
+        OCMExpect([transformerMock transformedValue:value]).andReturn(TransformedValue);
 
-        _objectA.propertyA = Value;
+        _objectA.propertyA = value;
 
         OCMVerifyAll(transformerMock);
         XCTAssertEqualObjects(_objectB.propertyB, TransformedValue);
-    }
+    });
 }
 
 - (void)test_changeSecondObjectProperty_TwoWayAndCustomTransformerSpecified_FirstObjectPropertyChangedToTransformedValue
@@ -546,79 +453,220 @@
     _configuration.valueTransformer = transformerMock;
     [_configuration setUpBinding];
 
-    for (id v in @[ [NSObject new], [NSNull null] ]) {
+    EnumerateOptionalValues(^(id value) {
 
-        const id Value = v != [NSNull null] ? v : nil;
         const id TransformedValue = [NSObject new];
 
-        OCMExpect([transformerMock reverseTransformedValue:Value]).andReturn(TransformedValue);
+        OCMExpect([transformerMock reverseTransformedValue:value]).andReturn(TransformedValue);
 
-        _objectB.propertyB = Value;
+        _objectB.propertyB = value;
 
         OCMVerifyAll(transformerMock);
         XCTAssertEqualObjects(_objectA.propertyA, TransformedValue);
-    }
+    });
 }
 
 
-#pragma mark - Binding Query Test Methods
+#pragma mark - Memory Management and Query Test Methods
 
-- (void)test_object_bindingsForKeypath_OneWay_ArrayWithBindingControllerReturned
+#ifdef DEBUG
+
+- (void)test_oneWayBinding_QueryReturnsNoReverseBindings
 {
-    id binding = [_configuration registerBinding];
+    [_configuration registerBinding];
 
-    // Binding should be returned for an object even if awakeFromNib has not been yet called on the binding.
-    XCTAssertEqualObjects([_objectA mfb_bindingsForKeyPath:NSStringFromSelector(@selector(propertyA))], @[ binding ]);
-    XCTAssertEqualObjects([_objectB mfb_bindingsForKeyPath:NSStringFromSelector(@selector(propertyB))], @[ binding ]);
-}
-
-- (void)test_object_bindingsForKeypath_TwoWay_ArrayWithBindingControllerReturned
-{
-    _configuration.twoWay = YES;
-    id binding = [_configuration registerBinding];
-
-    // Binding should be returned for an object even if awakeFromNib has not been yet called on the binding.
-    XCTAssertEqualObjects([_objectA mfb_bindingsForKeyPath:NSStringFromSelector(@selector(propertyA))], @[ binding ]);
-    XCTAssertEqualObjects([_objectB mfb_bindingsForKeyPath:NSStringFromSelector(@selector(propertyB))], @[ binding ]);
-}
-
-- (void)test_object_getterBindingsForKeypath_OneWay_ArrayWithBindingControllerReturned
-{
-    id binding = [_configuration registerBinding];
-
-    // Binding should be returned for an object even if awakeFromNib has not been yet called on the binding.
-    XCTAssertEqualObjects([_objectA mfb_getterBindingsForKeyPath:NSStringFromSelector(@selector(propertyA))], @[ binding ]);
+    XCTAssertEqualObjects([_objectA mfb_setterBindingsForKeyPath:NSStringFromSelector(@selector(propertyA))], @[]);
     XCTAssertEqualObjects([_objectB mfb_getterBindingsForKeyPath:NSStringFromSelector(@selector(propertyB))], @[]);
 }
 
-- (void)test_object_getterBindingsForKeypath_TwoWay_ArrayWithBindingControllerReturned
+- (void)test_sharesSameBindingObject_OneWay
+{
+    [_configuration registerBinding];
+
+    // Binding should be returned for an object even if awakeFromNib has not been yet called on the binding.
+    NSArray *getterBindingsA = [_objectA mfb_getterBindingsForKeyPath:NSStringFromSelector(@selector(propertyA))];
+    NSArray *setterBindingsB = [_objectB mfb_setterBindingsForKeyPath:NSStringFromSelector(@selector(propertyB))];
+
+    XCTAssertEqualObjects(getterBindingsA, setterBindingsB);
+}
+
+- (void)test_sharesSameBindingObject_TwoWay
 {
     _configuration.twoWay = YES;
-    id binding = [_configuration registerBinding];
+    [_configuration registerBinding];
 
     // Binding should be returned for an object even if awakeFromNib has not been yet called on the binding.
-    XCTAssertEqualObjects([_objectA mfb_getterBindingsForKeyPath:NSStringFromSelector(@selector(propertyA))], @[ binding ]);
-    XCTAssertEqualObjects([_objectB mfb_getterBindingsForKeyPath:NSStringFromSelector(@selector(propertyB))], @[ binding ]);
+    NSArray *getterBindingsA = [_objectA mfb_getterBindingsForKeyPath:NSStringFromSelector(@selector(propertyA))];
+    NSArray *setterBindingsA = [_objectA mfb_setterBindingsForKeyPath:NSStringFromSelector(@selector(propertyA))];
+
+    NSArray *getterBindingsB = [_objectB mfb_getterBindingsForKeyPath:NSStringFromSelector(@selector(propertyB))];
+    NSArray *setterBindingsB = [_objectB mfb_setterBindingsForKeyPath:NSStringFromSelector(@selector(propertyB))];
+
+    XCTAssertEqualObjects(getterBindingsA, setterBindingsA);
+    XCTAssertEqualObjects(getterBindingsA, getterBindingsB);
+    XCTAssertEqualObjects(getterBindingsA, setterBindingsB);
 }
 
-- (void)test_object_setterBindingsForKeypath_OneWay_ArrayWithBindingControllerReturned
+- (void)test_FirstObjectDeallocation_OneWayBinding_BindingDeallocated
 {
-    id binding = [_configuration registerBinding];
+    [_configuration setUpBinding];
 
-    // Binding should be returned for an object even if awakeFromNib has not been yet called on the binding.
-    XCTAssertEqualObjects([_objectA mfb_setterBindingsForKeyPath:NSStringFromSelector(@selector(propertyA))], @[]);
-    XCTAssertEqualObjects([_objectB mfb_setterBindingsForKeyPath:NSStringFromSelector(@selector(propertyB))], @[ binding ]);
+    id binding;
+
+    @autoreleasepool {
+        binding = [_objectA mfb_getterBindingsForKeyPath:NSStringFromSelector(@selector(propertyA))];
+    }
+
+    __weak id WeakBinding = binding;
+    __weak id WeakObjA = _objectA;
+
+    binding = nil;
+    _objectA = nil;
+
+    XCTAssertNil(WeakObjA);
+    XCTAssertNil(WeakBinding);
 }
 
-- (void)test_object_setterBindingsForKeypath_TwoWay_ArrayWithBindingControllerReturned
+- (void)test_SecondObjectDeallocation_OneWayBinding_BindingDeallocated
+{
+    id binding;
+
+    @autoreleasepool {
+        [_configuration setUpBinding];
+        binding = [_objectA mfb_getterBindingsForKeyPath:NSStringFromSelector(@selector(propertyA))][0];
+    }
+
+    __weak id WeakBinding = binding;
+    __weak id WeakObjB = _objectB;
+
+    binding = nil;
+    _objectB = nil;
+
+    XCTAssertNil(WeakObjB);
+    XCTAssertNil(WeakBinding);
+
+    _objectA.propertyA = @"Some";
+}
+
+- (void)test_FirstObjectDeallocation_OneWayBindingNotFinished_BindingDeallocated
+{
+    [_configuration registerBinding];
+
+    id binding;
+
+    @autoreleasepool {
+        binding = [_objectA mfb_getterBindingsForKeyPath:NSStringFromSelector(@selector(propertyA))];
+    }
+
+    __weak id WeakBinding = binding;
+    __weak id WeakObjA = _objectA;
+
+    binding = nil;
+    _objectA = nil;
+
+    XCTAssertNil(WeakObjA);
+    XCTAssertNil(WeakBinding);
+}
+
+- (void)test_SecondObjectDeallocation_OneWayBindingNotFinished_BindingDeallocated
+{
+    [_configuration registerBinding];
+
+    id binding;
+
+    @autoreleasepool {
+        binding = [_objectB mfb_setterBindingsForKeyPath:NSStringFromSelector(@selector(propertyB))];
+    }
+
+    __weak id WeakBinding = binding;
+    __weak id WeakObjB = _objectB;
+
+    binding = nil;
+    _objectB = nil;
+
+    XCTAssertNil(WeakObjB);
+    XCTAssertNil(WeakBinding);
+
+    _objectA.propertyA = @"Some";
+}
+
+- (void)test_TwoWayBinding_BindingStaysAliveIfObjectsAreAlive
 {
     _configuration.twoWay = YES;
-    id binding = [_configuration registerBinding];
+    [_configuration setUpBinding];
 
-    // Binding should be returned for an object even if awakeFromNib has not been yet called on the binding.
-    XCTAssertEqualObjects([_objectA mfb_setterBindingsForKeyPath:NSStringFromSelector(@selector(propertyA))], @[ binding ]);
-    XCTAssertEqualObjects([_objectB mfb_setterBindingsForKeyPath:NSStringFromSelector(@selector(propertyB))], @[ binding ]);
+    id binding;
+
+    @autoreleasepool {
+        binding = [_objectA mfb_getterBindingsForKeyPath:NSStringFromSelector(@selector(propertyA))][0];
+    }
+
+    __weak id WeakBinding = binding;
+
+    binding = nil;
+
+    XCTAssertNotNil(WeakBinding);
 }
+
+- (void)test_TwoWayBinding_BindingDoesNotCauseRetainCycles
+{
+    _configuration.twoWay = YES;
+    [_configuration setUpBinding];
+
+    id binding;
+
+    @autoreleasepool {
+        binding = [_objectA mfb_getterBindingsForKeyPath:NSStringFromSelector(@selector(propertyA))];
+    }
+
+    __weak id WeakBinding = binding;
+    __weak id WeakObjA = _objectA;
+    __weak id WeakObjB = _objectB;
+
+    binding = nil;
+    _objectA = nil;
+    _objectB = nil;
+    
+    XCTAssertNil(WeakBinding);
+    XCTAssertNil(WeakObjA);
+    XCTAssertNil(WeakObjB);
+}
+
+
+/*
+ 1. B binds to A.propertyA and is being retained by that binding.
+ 2. B retains C through its property
+ 3. C binds to A.propertyA
+ 4. When A deallocates, unbinding of binding 1. causes deallocation of B and, consequently, deallocation of C,
+ killing binding 3 and causing "array was mutated while being enumerated" exception in binding enumeration code.
+ */
+- (void)test_objectDealloc_MultipleBindingsCausingCascadeDeallocation_DoesNotThrow
+{
+    __auto_type objectA = [MFBBindingTestObjectA new];
+    __auto_type objectB = [MFBBindingTestObjectB new];
+    __auto_type objectC = [MFBBindingTestObjectA new];
+
+    objectB.arrayB = @[ objectC ]; // make B retain C
+
+    [objectC mfb_bind:NSStringFromSelector(@selector(propertyA))
+             toObject:objectA
+          withKeyPath:NSStringFromSelector(@selector(propertyA))
+              options:nil];
+
+    [objectB mfb_bind:NSStringFromSelector(@selector(propertyB))
+             toObject:objectA
+          withKeyPath:NSStringFromSelector(@selector(propertyA))
+              options:@{
+                        MFBRetainObserverBindingOption : @YES,
+                        }];
+
+    objectC = nil;
+    objectB = nil;
+    // subgraph of B & C is now retained only by the binding between A & B
+    objectA = nil;
+}
+
+#endif // #ifdef DEBUG
 
 
 #pragma mark - UIControl Binding Test Methods
@@ -710,6 +758,8 @@
     }
 }
 
+#ifdef DEBUG
+
 - (void)test_SecondObjectDeallocation_BindingToUIControlObject_HandledCorrectly
 {
     MFBBindingTestControl *control = [MFBBindingTestControl new];
@@ -718,7 +768,12 @@
     _configuration.firstObject = control;
     _configuration.firstKeyPath = NSStringFromSelector(@selector(propertyC));
 
-    id binding = [_configuration setUpBinding];
+    id binding;
+
+    @autoreleasepool {
+        [_configuration setUpBinding];
+        binding = [control mfb_getterBindingsForKeyPath:NSStringFromSelector(@selector(propertyC))][0];
+    }
 
     __weak id WeakBinding = binding;
     __weak id WeakObjB = _objectB;
@@ -746,7 +801,12 @@
 
     _configuration.twoWay = YES;
 
-    id binding = [_configuration setUpBinding];
+    id binding;
+
+    @autoreleasepool {
+        [_configuration setUpBinding];
+        binding = [control mfb_setterBindingsForKeyPath:NSStringFromSelector(@selector(propertyC))][0];
+    }
 
     __weak id WeakBinding = binding;
     __weak id WeakObjA = _objectA;
@@ -767,14 +827,12 @@
 
 #pragma mark - Binding Assertions Test Methods
 
+#ifdef NS_BLOCK_ASSERTIONS
+    #error Tests require assertions enabled
+#else
+
 - (void)test_BindingAssertion_NoBindingsForKeyPathAndBindingAssertionEnabled_Thows
 {
-#pragma push_macro("NS_BLOCK_ASSERTIONS")
-
-    // Force-enabling foundation assertions
-    #ifdef NS_BLOCK_ASSERTIONS
-        #undef NS_BLOCK_ASSERTIONS
-    #endif
 
     MFBBindingTestObjectA *object = [MFBBindingTestObjectA new];
 
@@ -786,29 +844,21 @@
 
     XCTAssertThrows(MFBAssertSetterBinding(object, propertyA));
     XCTAssertThrows(MFBAssertGetterBinding(object, propertyA));
-
-#pragma pop_macro("NS_BLOCK_ASSERTIONS")
 }
 
 - (void)test_BindingAssertion_NoBindingsForKeyPathAndBindingAssertionDisabled_DoesNotThow
 {
-#pragma push_macro("NS_BLOCK_ASSERTIONS")
-
-    // Force-enabling foundation assertions
-    #ifdef NS_BLOCK_ASSERTIONS
-        #undef NS_BLOCK_ASSERTIONS
-    #endif
-
     MFBBindingTestObjectA *object = [MFBBindingTestObjectA new];
 
     object.bindingAssertionDisabled = YES;
 
     XCTAssertNoThrow(MFBAssertSetterBinding(object, propertyA));
     XCTAssertNoThrow(MFBAssertGetterBinding(object, propertyA));
-
-#pragma pop_macro("NS_BLOCK_ASSERTIONS")
 }
 
+#endif // #ifdef NS_BLOCK_ASSERTIONS
+
+#endif // #ifdef DEBUG
 
 #pragma mark - Array Binding Test Methods
 
@@ -1408,6 +1458,8 @@
     XCTAssertEqualObjects(_objectA.replacedIndexes, indexes);
 }
 
+#ifdef DEBUG
+
 - (void)test_unbind_RemovesMatchingSetterBindings
 {
     __auto_type object1 = [MFBBindingTestObjectA new];
@@ -1437,37 +1489,6 @@
     XCTAssertEqual([object3 mfb_setterBindingsForKeyPath:NSStringFromSelector(@selector(arrayA))].count, 1);
 }
 
-/*
- 1. B binds to A.propertyA and is being retained by that binding.
- 2. B retains C through its property
- 3. C binds to A.propertyA
- 4. When A deallocates, unbinding of binding 1. causes deallocation of B and, consequently, deallocation of C,
- killing binding 3 and causing "array was mutated while being enumerated" exception in binding enumeration code.
- */
-- (void)test_objectDealloc_MultipleBindingsCausingCascadeDeallocation_DoesNotThrow
-{
-    __auto_type objectA = [MFBBindingTestObjectA new];
-    __auto_type objectB = [MFBBindingTestObjectB new];
-    __auto_type objectC = [MFBBindingTestObjectA new];
-
-    objectB.arrayB = @[ objectC ]; // make B retain C
-
-    [objectC mfb_bind:NSStringFromSelector(@selector(propertyA))
-             toObject:objectA
-          withKeyPath:NSStringFromSelector(@selector(propertyA))
-              options:nil];
-
-    [objectB mfb_bind:NSStringFromSelector(@selector(propertyB))
-             toObject:objectA
-          withKeyPath:NSStringFromSelector(@selector(propertyA))
-              options:@{
-                  MFBRetainObserverBindingOption : @YES,
-              }];
-
-    objectC = nil;
-    objectB = nil;
-    // subgraph of B & C is now retained only by the binding between A & B
-    objectA = nil;
-}
+#endif // #ifdef DEBUG
 
 @end

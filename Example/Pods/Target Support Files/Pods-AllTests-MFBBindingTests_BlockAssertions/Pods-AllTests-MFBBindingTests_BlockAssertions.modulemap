@@ -1,0 +1,6 @@
+framework module Pods_AllTests_MFBBindingTests_BlockAssertions {
+  umbrella header "Pods-AllTests-MFBBindingTests_BlockAssertions-umbrella.h"
+
+  export *
+  module * { export * }
+}

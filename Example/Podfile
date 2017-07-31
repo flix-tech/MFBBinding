@@ -1,8 +1,9 @@
 use_frameworks!
 
-target 'MFBBindingTests' do
+abstract_target 'AllTests' do
+    pod 'MFBBinding', :path => '../'
+    pod 'OCMock', :git => 'https://github.com/flix-tech/ocmock', :branch => 'custom'
 
-  pod 'MFBBinding', :path => '../'
-  pod 'OCMock', :git => 'https://github.com/flix-tech/ocmock', :branch => 'custom'
-
+    target 'MFBBindingTests'
+    target 'MFBBindingTests_BlockAssertions'
 end
