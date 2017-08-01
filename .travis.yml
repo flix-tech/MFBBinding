@@ -28,6 +28,6 @@ env:
 
 script:
 - set -o pipefail && travis_retry xcodebuild test -workspace Example/MFBBinding.xcworkspace -scheme "$SCHEME" -destination "$DESTINATION" ONLY_ACTIVE_ARCH=NO | bundle exec xcpretty
-- pod lib lint
+- bundle exec pod lib lint
 - if [ "$RUN_DANGER" = 1 ]; then brew bundle; fi
 - if [ "$RUN_DANGER" = 1 ]; then bundle exec danger; fi
