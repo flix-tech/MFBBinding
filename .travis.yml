@@ -24,10 +24,10 @@ env:
     - DESTINATION="platform=iOS Simulator,OS=8.1,name=iPhone 5" SCHEME="MFBBindingTests_Release" #32-bit
     - DESTINATION="platform=iOS Simulator,OS=9.3,name=iPhone 5" SCHEME="MFBBindingTests_Release" #32-bit
     - DESTINATION="platform=iOS Simulator,OS=9.3,name=iPhone 6s" SCHEME="MFBBindingTests_Release" #64-bit
-    - DESTINATION="platform=iOS Simulator,OS=10.3.1,name=iPhone 6s" SCHEME="MFBBindingTests_Release" #64-bit
+    - DESTINATION="platform=iOS Simulator,OS=10.3.1,name=iPhone 6s" SCHEME="MFBBindingTests_Release" RUN_DANGER=1 #64-bit
 
 script:
-- brew bundle
 - set -o pipefail && travis_retry xcodebuild test -workspace Example/MFBBinding.xcworkspace -scheme "$SCHEME" -destination "$DESTINATION" ONLY_ACTIVE_ARCH=NO | bundle exec xcpretty
-- bundle exec danger
 - pod lib lint
+- if [ "$RUN_DANGER" = 1 ]; then brew bundle; fi
+- if [ "$RUN_DANGER" = 1 ]; then bundle exec danger; fi
