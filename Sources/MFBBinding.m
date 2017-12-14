@@ -138,7 +138,8 @@ static NSString *const SetterBindingsGroup = @"SetterBindings";
                          action:@selector(controlChanged:)
                forControlEvents:UIControlEventValueChanged | UIControlEventEditingChanged];
     } else if ([_firstObject isKindOfClass:[UITextView class]]) {
-        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(textViewDidChange:)
+        [[NSNotificationCenter defaultCenter] addObserver:self
+                                                 selector:@selector(textViewDidChange:)
                                                      name:UITextViewTextDidChangeNotification
                                                    object:_firstObject];
     }
@@ -158,7 +159,8 @@ static NSString *const SetterBindingsGroup = @"SetterBindings";
                               action:@selector(controlChanged:)
                     forControlEvents:UIControlEventValueChanged | UIControlEventEditingChanged];
         } else if ([_secondObject isKindOfClass:[UITextView class]]) {
-            [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(textViewDidChange:)
+            [[NSNotificationCenter defaultCenter] addObserver:self
+                                                     selector:@selector(textViewDidChange:)
                                                          name:UITextViewTextDidChangeNotification
                                                        object:_secondObject];
         }
