@@ -792,7 +792,6 @@
 
         UITextRange *textRange = [textView textRangeFromPosition:textView.beginningOfDocument toPosition:textView.endOfDocument];
         [textView replaceRange:textRange withText:value];
-        XCTAssertEqualObjects(textView.text, value);
         XCTAssertEqualObjects(_objectB.propertyB, value);
     }
 }
