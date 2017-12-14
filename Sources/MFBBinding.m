@@ -13,6 +13,8 @@
 
 static void *FirstToSecondKey = &FirstToSecondKey;
 static void *SecondToFirstKey = &SecondToFirstKey;
+static void *FirstObjectNotificationTokenKey = &FirstObjectNotificationTokenKey;
+static void *SecondObjectNotificationTokenKey = &SecondObjectNotificationTokenKey;
 
 static NSString *const GetterBindingsGroup = @"GetterBindings";
 static NSString *const SetterBindingsGroup = @"SetterBindings";
@@ -137,6 +139,17 @@ static NSString *const SetterBindingsGroup = @"SetterBindings";
         [_firstObject addTarget:self
                          action:@selector(controlChanged:)
                forControlEvents:UIControlEventValueChanged | UIControlEventEditingChanged];
+    } else if ([_firstObject isKindOfClass:[UITextView class]]) {
+        __weak MFBBinding *weakSelf = self;
+        id notificationToken = [[NSNotificationCenter defaultCenter] addObserverForName:UITextViewTextDidChangeNotification
+                                                                                 object:_firstObject
+                                                                                  queue:nil
+                                                                             usingBlock:^(NSNotification *note) {
+                                                                                 UITextView *textView = note.object;
+                                                                                 [weakSelf controlChanged:textView];
+                                                                             }];
+
+        objc_setAssociatedObject(self, FirstObjectNotificationTokenKey, notificationToken, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     }
 
     if (_retainsSecondObject) {
@@ -153,6 +166,17 @@ static NSString *const SetterBindingsGroup = @"SetterBindings";
             [_secondObject addTarget:self
                               action:@selector(controlChanged:)
                     forControlEvents:UIControlEventValueChanged | UIControlEventEditingChanged];
+        } else if ([_secondObject isKindOfClass:[UITextView class]]) {
+            __weak MFBBinding *weakSelf = self;
+            id notificationToken = [[NSNotificationCenter defaultCenter] addObserverForName:UITextViewTextDidChangeNotification
+                                                                                     object:_secondObject
+                                                                                      queue:nil
+                                                                                 usingBlock:^(NSNotification *note) {
+                                                                                     UITextView *textView = note.object;
+                                                                                     [weakSelf controlChanged:textView];
+                                                                                 }];
+
+            objc_setAssociatedObject(self, SecondObjectNotificationTokenKey, notificationToken, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         }
     }
 }
