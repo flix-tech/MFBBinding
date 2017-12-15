@@ -860,6 +860,44 @@
 
 #endif // #ifdef DEBUG
 
+#pragma mark - UITextView Binding Test Methods
+
+- (void)test_reverseBindingToUITextViewObject_UpdatesBoundPropertyOnTextChange
+{
+    UITextView *textView = [UITextView new];
+
+    _configuration.secondObject = textView;
+    _configuration.secondKeyPath = NSStringFromSelector(@selector(text));
+
+    _configuration.twoWay = YES;
+
+    [_configuration setUpBinding];
+
+    for (NSString *value in @[ @"Hello World", @"I am", @"a horse" ]) {
+
+        UITextRange *textRange = [textView textRangeFromPosition:textView.beginningOfDocument toPosition:textView.endOfDocument];
+        [textView replaceRange:textRange withText:value];
+        XCTAssertEqualObjects(_objectA.propertyA, value);
+    }
+}
+
+- (void)test_bindingToUITextViewObject_UpdatesBoundPropertyOnTextChange
+{
+    UITextView *textView = [UITextView new];
+
+    _configuration.firstObject = textView;
+    _configuration.firstKeyPath = NSStringFromSelector(@selector(text));
+
+    [_configuration setUpBinding];
+
+    for (NSString *value in @[ @"Hello World", @"I am", @"a horse" ]) {
+
+        UITextRange *textRange = [textView textRangeFromPosition:textView.beginningOfDocument toPosition:textView.endOfDocument];
+        [textView replaceRange:textRange withText:value];
+        XCTAssertEqualObjects(_objectB.propertyB, value);
+    }
+}
+
 #pragma mark - Array Binding Test Methods
 
 - (void)test_insertionIntoFirstObjectArray_ChangesSecondObjectArrayWithUpdatedArray

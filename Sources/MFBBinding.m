@@ -137,6 +137,11 @@ static NSString *const SetterBindingsGroup = @"SetterBindings";
         [_firstObject addTarget:self
                          action:@selector(controlChanged:)
                forControlEvents:UIControlEventValueChanged | UIControlEventEditingChanged];
+    } else if ([_firstObject isKindOfClass:[UITextView class]]) {
+        [[NSNotificationCenter defaultCenter] addObserver:self
+                                                 selector:@selector(textViewDidChange:)
+                                                     name:UITextViewTextDidChangeNotification
+                                                   object:_firstObject];
     }
 
     if (_retainsSecondObject) {
@@ -153,6 +158,11 @@ static NSString *const SetterBindingsGroup = @"SetterBindings";
             [_secondObject addTarget:self
                               action:@selector(controlChanged:)
                     forControlEvents:UIControlEventValueChanged | UIControlEventEditingChanged];
+        } else if ([_secondObject isKindOfClass:[UITextView class]]) {
+            [[NSNotificationCenter defaultCenter] addObserver:self
+                                                     selector:@selector(textViewDidChange:)
+                                                         name:UITextViewTextDidChangeNotification
+                                                       object:_secondObject];
         }
     }
 }
@@ -169,6 +179,7 @@ static NSString *const SetterBindingsGroup = @"SetterBindings";
     _isBound = NO;
 
     [_firstObject removeObserver:self forKeyPath:_firstKeyPath context:FirstToSecondKey];
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
 
     if ([_firstObject isKindOfClass:[UIControl class]]) {
         [_firstObject removeTarget:self
@@ -273,6 +284,15 @@ static __auto_type ReverseTransformer = ^(NSValueTransformer *valueTransformer, 
 - (void)controlChanged:(id)sender
 {
     NSString *key = sender == _firstObject ? _firstKeyPath : _secondKeyPath;
+
+    [sender willChangeValueForKey:key];
+    [sender didChangeValueForKey:key];
+}
+
+- (void)textViewDidChange:(NSNotification *)notification
+{
+    id sender = notification.object;
+    NSString *key = (sender == _firstObject) ? _firstKeyPath : _secondKeyPath;
 
     [sender willChangeValueForKey:key];
     [sender didChangeValueForKey:key];
